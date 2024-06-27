@@ -75,6 +75,7 @@ def create_final_video():
     audio_clip = AudioFileClip(f"output/{AUDIO_NAME}")
 
     try:
+        # Load the video clip and resize it without causing the error
         video_clip = VideoFileClip(f"output/{VIDEO_NAME}", audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
         fact_text = TextClip(text_quote, color='white', fontsize=50).set_position(('center', 1050))
         final = CompositeVideoClip([video_clip, fact_text], size=resolution)

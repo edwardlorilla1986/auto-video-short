@@ -19,8 +19,6 @@ from pyfiglet import Figlet
 fig_font = Figlet(font="slant", justify="left")
 print(fig_font.renderText("Auto Video Short!!!"))
 
-# Wait for user to start the program
-input("Press ENTER/RETURN to start the program....")
 
 try:
     # Get a quote and save it to a variable

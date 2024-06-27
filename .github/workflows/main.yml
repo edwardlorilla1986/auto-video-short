@@ -3,10 +3,10 @@ name: Auto Video Short
 on:
   push:
     branches:
-      - main
+      - Production
   pull_request:
     branches:
-      - main
+      - Production
 
 jobs:
   build:

@@ -36,8 +36,12 @@ jobs:
     - name: Run script
       run: python main.py
 
-    - name: Upload video artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: video-file
-        path: output/
+    - name: Commit output files
+      run: |
+        git config --global user.name 'github-actions'
+        git config --global user.email 'github-actions@github.com'
+        git add output/*
+        git commit -m "Add generated video files"
+        git push origin main
+      env:
+        GITHUB_TOKEN: ${{ secrets.PAT }}

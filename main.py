@@ -24,7 +24,7 @@ load_dotenv(".env")
 AUDIO_NAME = environ.get("AUDIO_NAME", "audio.mp3")
 VIDEO_NAME = environ.get("VIDEO_NAME", "video.mp4")
 FINAL_VIDEO = environ.get("FINAL_VIDEO", "final_video.mp4")
-BLOG_EMAIL = environ.get("BLOG_EMAIL")  # Your Blogger posting email address
+BLOG_EMAIL = environ.get("EMAIL_TO")  # Your Blogger posting email address
 EMAIL_USER = environ.get("EMAIL_USER")  # Your email address
 EMAIL_PASS = environ.get("EMAIL_PASS")  # Your email password
 

@@ -1,7 +1,6 @@
 import os
 import requests
 import json
-import urllib.request
 import ast
 from random import randint
 from os import environ
@@ -47,9 +46,16 @@ def download_video():
     videoLink = parse_json['videos'][random_index]['video_files'][0]['link']
     print(f"Downloading video from: {videoLink}")
 
-    # Download the video file
+    # Download the video file using requests
     try:
-        urllib.request.urlretrieve(videoLink, f"output/{VIDEO_NAME}")
+        video_response = requests.get(videoLink, stream=True)
+        video_response.raise_for_status()  # Raise an exception for HTTP errors
+
+        with open(f"output/{VIDEO_NAME}", 'wb') as file:
+            for chunk in video_response.iter_content(chunk_size=8192):
+                file.write(chunk)
+        
         print(f"Video successfully downloaded to output/{VIDEO_NAME}")
     except Exception as e:
         print(f"Error downloading video: {e}")
+

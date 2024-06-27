@@ -57,11 +57,14 @@ def download_video():
         video_response = requests.get(videoLink, stream=True)
         video_response.raise_for_status()  # Raise an exception for HTTP errors
 
-        with open(f"output/{VIDEO_NAME}", 'wb') as file:
+        video_path = f"output/{VIDEO_NAME}"
+        with open(video_path, 'wb') as file:
             for chunk in video_response.iter_content(chunk_size=8192):
                 file.write(chunk)
         
-        print(f"Video successfully downloaded to output/{VIDEO_NAME}")
+        print(f"Video successfully downloaded to {video_path}")
+        if not os.path.exists(video_path):
+            print(f"Error: {video_path} could not be found after download")
     except Exception as e:
         print(f"Error downloading video: {e}")
 
@@ -75,8 +78,14 @@ def create_final_video():
     audio_clip = AudioFileClip(f"output/{AUDIO_NAME}")
 
     try:
-        # Load the video clip and resize it without causing the error
-        video_clip = VideoFileClip(f"output/{VIDEO_NAME}", audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
+        video_path = f"output/{VIDEO_NAME}"
+        # Check if the video file exists before proceeding
+        if not os.path.exists(video_path):
+            print(f"Error: {video_path} could not be found before processing")
+            return
+
+        # Load the video clip and resize it
+        video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
         fact_text = TextClip(text_quote, color='white', fontsize=50).set_position(('center', 1050))
         final = CompositeVideoClip([video_clip, fact_text], size=resolution)
         final.subclip(0, video_clip.duration).write_videofile(f"output/{FINAL_VIDEO}", fps=30, codec='libx264')

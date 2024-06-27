@@ -3,10 +3,10 @@ name: Auto Video Short
 on:
   push:
     branches:
-      - Production
+      - main
   pull_request:
     branches:
-      - Production
+      - main
 
 jobs:
   build:
@@ -16,6 +16,8 @@ jobs:
       AUDIO_NAME: "audio.mp3"
       VIDEO_NAME: "video.mp4"
       FINAL_VIDEO: "final_video.mp4"
+      VIDEOURL: ${{ secrets.VIDEOURL }}
+      AUTH_TOKEN: ${{ secrets.AUTH_TOKEN }}
 
     steps:
     - name: Checkout repository
@@ -33,3 +35,9 @@ jobs:
 
     - name: Run script
       run: python main.py
+
+    - name: Upload video artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: video-file
+        path: output/

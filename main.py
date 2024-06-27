@@ -9,7 +9,7 @@ VIDEO_NAME = environ.get("VIDEO_NAME", "video.mp4")
 FINAL_VIDEO = environ.get("FINAL_VIDEO", "final_video.mp4")
 
 from videoProcess.Quote import get_quote
-from videoProcess.SoundCreate import polly_audio, make_audio
+from videoProcess.SoundCreate import make_audio
 from videoProcess.VideoDownload import download_video
 from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip
 from textwrap import fill
@@ -23,11 +23,6 @@ print(fig_font.renderText("Auto Video Short!!!"))
 try:
     # Get a quote and save it to a variable
     text_quote = get_quote()
-
-    # Create the audio file from the quote
-    # Uncomment polly_audio function and comment out make_audio function
-    # if you have set up an AWS account and configured your local profile
-    # polly_audio(text_quote)
     make_audio(text_quote)
 
     # Download the video clip from an API

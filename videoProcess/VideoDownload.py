@@ -22,7 +22,7 @@ def download_video():
     # Ensure output directory exists
     if not os.path.exists('output'):
         os.makedirs('output')
-
+    print(AUTH_TOKEN)
     # Request stored in response variable
     response = requests.get(VIDEOURL, headers=AUTH_TOKEN)
 
@@ -31,7 +31,7 @@ def download_video():
         print(f"Error: Received status code {response.status_code}")
         print(response.text)
         return
-    print(AUTH_TOKEN)
+    
     # Format the response 
     format_response = response.text
     print("Response JSON:", format_response)  # Print the JSON response for debugging

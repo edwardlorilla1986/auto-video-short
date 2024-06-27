@@ -1,5 +1,4 @@
 import os
-import subprocess
 import requests
 import json
 import urllib.request
@@ -12,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv(".env")
 
 VIDEOURL = environ["VIDEOURL"]
-AUTH_TOKEN = ast.literal_eval(environ["AUTH_TOKEN"])
+AUTH_TOKEN = json.loads(environ["AUTH_TOKEN"])  # Use json.loads instead of ast.literal_eval for JSON
 VIDEO_NAME = environ["VIDEO_NAME"]
 
 def download_video():
@@ -22,7 +21,7 @@ def download_video():
     # Ensure output directory exists
     if not os.path.exists('output'):
         os.makedirs('output')
-    print(AUTH_TOKEN)
+
     # Request stored in response variable
     response = requests.get(VIDEOURL, headers=AUTH_TOKEN)
 
@@ -31,7 +30,7 @@ def download_video():
         print(f"Error: Received status code {response.status_code}")
         print(response.text)
         return
-    
+
     # Format the response 
     format_response = response.text
     print("Response JSON:", format_response)  # Print the JSON response for debugging
@@ -54,18 +53,3 @@ def download_video():
         print(f"Video successfully downloaded to output/{VIDEO_NAME}")
     except Exception as e:
         print(f"Error downloading video: {e}")
-
-def git_commit_and_push():
-    try:
-        # Add changes to Git
-        subprocess.run(['git', 'add', 'main.py', 'videoProcess/VideoDownload.py', 'output/'], check=True)
-        
-        # Commit changes
-        commit_message = "Add output directory with downloaded video file"
-        subprocess.run(['git', 'commit', '-m', commit_message], check=True)
-        
-        # Push changes to the remote repository
-        subprocess.run(['git', 'push', 'origin', 'main'], check=True)
-        print("Changes pushed to GitHub successfully.")
-    except subprocess.CalledProcessError as e:
-        print(f"An error occurred while running git command: {e}")

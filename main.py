@@ -46,3 +46,5 @@ final = CompositeVideoClip([video_clip, fact_text], size=resolution)
 
 # Export the final video
 final.subclip(0, video_clip.duration).write_videofile(f"output/{FINAL_VIDEO}", fps=30, codec='libx264')
+
+

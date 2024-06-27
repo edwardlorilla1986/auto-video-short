@@ -30,6 +30,8 @@ jobs:
 
     - name: Install dependencies
       run: |
+        sudo apt-get update
+        sudo apt-get install -y imagemagick
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
@@ -44,4 +46,4 @@ jobs:
         git commit -m "Add generated video files"
         git push origin main
       env:
-        GITHUB_TOKEN: ${{ secrets.PAT }} 
+        GITHUB_TOKEN: ${{ secrets.PAT }}

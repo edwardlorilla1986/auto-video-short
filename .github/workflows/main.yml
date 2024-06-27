@@ -44,4 +44,4 @@ jobs:
         git commit -m "Add generated video files"
         git push origin main
       env:
-        GITHUB_TOKEN: ${{ secrets.PAT }}
+        GITHUB_TOKEN: ${{ secrets.PAT }} 

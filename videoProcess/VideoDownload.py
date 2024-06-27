@@ -1,4 +1,5 @@
 import os
+import subprocess
 import requests
 import json
 import urllib.request
@@ -53,3 +54,18 @@ def download_video():
         print(f"Video successfully downloaded to output/{VIDEO_NAME}")
     except Exception as e:
         print(f"Error downloading video: {e}")
+
+def git_commit_and_push():
+    try:
+        # Add changes to Git
+        subprocess.run(['git', 'add', 'main.py', 'videoProcess/VideoDownload.py', 'output/'], check=True)
+        
+        # Commit changes
+        commit_message = "Add output directory with downloaded video file"
+        subprocess.run(['git', 'commit', '-m', commit_message], check=True)
+        
+        # Push changes to the remote repository
+        subprocess.run(['git', 'push', 'origin', 'main'], check=True)
+        print("Changes pushed to GitHub successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"An error occurred while running git command: {e}")

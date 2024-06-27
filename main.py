@@ -77,7 +77,6 @@ try:
 except Exception as e:
     print(f"Error processing video: {e}")
 
-# Function to send email with attachment
 def send_email(subject, body, to, file_path):
     msg = MIMEMultipart()
     msg['From'] = EMAIL_USER

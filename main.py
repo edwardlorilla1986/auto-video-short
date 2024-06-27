@@ -7,6 +7,11 @@ from pyfiglet import Figlet
 from videoProcess.Quote import get_quote
 from videoProcess.SoundCreate import make_audio
 from videoProcess.VideoDownload import download_video
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
+from email.mime.text import MIMEText
 
 # Load environment variables from .env file if running locally
 load_dotenv(".env")
@@ -14,6 +19,9 @@ load_dotenv(".env")
 AUDIO_NAME = environ.get("AUDIO_NAME", "audio.mp3")
 VIDEO_NAME = environ.get("VIDEO_NAME", "video.mp4")
 FINAL_VIDEO = environ.get("FINAL_VIDEO", "final_video.mp4")
+EMAIL_USER = environ.get("EMAIL_USER")
+EMAIL_PASS = environ.get("EMAIL_PASS")
+EMAIL_TO = environ.get("EMAIL_TO")
 
 # Ensure output directory exists
 output_dir = "output"
@@ -63,7 +71,41 @@ try:
     final = CompositeVideoClip([video_clip, fact_text], size=resolution)
 
     # Export the final video
-    final.subclip(0, video_clip.duration).write_videofile(f"{output_dir}/{FINAL_VIDEO}", fps=30, codec='libx264')
-    print(f"Final video successfully created at {output_dir}/{FINAL_VIDEO}")
+    final_video_path = f"{output_dir}/{FINAL_VIDEO}"
+    final.subclip(0, video_clip.duration).write_videofile(final_video_path, fps=30, codec='libx264')
+    print(f"Final video successfully created at {final_video_path}")
 except Exception as e:
     print(f"Error processing video: {e}")
+
+# Function to send email with attachment
+def send_email(subject, body, to, file_path):
+    msg = MIMEMultipart()
+    msg['From'] = EMAIL_USER
+    msg['To'] = to
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(body, 'plain'))
+
+    attachment = open(file_path, "rb")
+    part = MIMEBase('application', 'octet-stream')
+    part.set_payload(attachment.read())
+    encoders.encode_base64(part)
+    part.add_header('Content-Disposition', f"attachment; filename= {os.path.basename(file_path)}")
+
+    msg.attach(part)
+
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(EMAIL_USER, EMAIL_PASS)
+    text = msg.as_string()
+    server.sendmail(EMAIL_USER, to, text)
+    server.quit()
+    print(f"Email sent to {to} with attachment {file_path}")
+
+# Send the final video as an email attachment
+send_email(
+    subject="Your Auto Video Short",
+    body="Please find the attached video.",
+    to=EMAIL_TO,
+    file_path=final_video_path
+)

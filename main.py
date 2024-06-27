@@ -102,7 +102,7 @@ def upload_to_youtube(file_path):
             credentials.refresh(Request())
         else:
             flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
-            credentials = flow.run_local_server(port=0)
+            credentials = flow.run_console()  # Use run_console instead of run_local_server
         
         # Save the credentials for the next run
         with open(CREDENTIALS_FILE, "wb") as token:

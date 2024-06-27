@@ -1,3 +1,4 @@
+import os
 import requests
 import json
 import urllib.request
@@ -16,6 +17,7 @@ VIDEO_NAME = environ["VIDEO_NAME"]
 def download_video():
     # Create random number between 0 and 49
     random_index = randint(0, 49)
+    
     # Ensure output directory exists
     if not os.path.exists('output'):
         os.makedirs('output')

@@ -1,9 +1,10 @@
 import os
-import json
+import pickle
 import google.auth
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import googleapiclient.errors
+from google.auth.transport.requests import Request
 from os import environ
 from dotenv import load_dotenv
 from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip
@@ -14,8 +15,6 @@ from videoProcess.SoundCreate import make_audio
 from videoProcess.VideoDownload import download_video
 import smtplib
 from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
 from email.mime.text import MIMEText
 
 # Load environment variables from .env file if running locally
@@ -24,7 +23,7 @@ load_dotenv(".env")
 AUDIO_NAME = environ.get("AUDIO_NAME", "audio.mp3")
 VIDEO_NAME = environ.get("VIDEO_NAME", "video.mp4")
 FINAL_VIDEO = environ.get("FINAL_VIDEO", "final_video.mp4")
-BLOG_EMAIL = environ.get("EMAIL_TO")  # Your Blogger posting email address
+BLOG_EMAIL = environ.get("BLOG_EMAIL")  # Your Blogger posting email address
 EMAIL_USER = environ.get("EMAIL_USER")  # Your email address
 EMAIL_PASS = environ.get("EMAIL_PASS")  # Your email password
 
@@ -88,10 +87,27 @@ def upload_to_youtube(file_path):
     SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
     API_SERVICE_NAME = "youtube"
     API_VERSION = "v3"
+    CREDENTIALS_FILE = "credentials.pickle"
 
-    # Get credentials and create an API client
-    flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
-    credentials = flow.run_console()
+    credentials = None
+
+    # Load existing credentials if available
+    if os.path.exists(CREDENTIALS_FILE):
+        with open(CREDENTIALS_FILE, "rb") as token:
+            credentials = pickle.load(token)
+
+    # If there are no (valid) credentials available, let the user log in.
+    if not credentials or not credentials.valid:
+        if credentials and credentials.expired and credentials.refresh_token:
+            credentials.refresh(Request())
+        else:
+            flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
+            credentials = flow.run_local_server(port=0)
+        
+        # Save the credentials for the next run
+        with open(CREDENTIALS_FILE, "wb") as token:
+            pickle.dump(credentials, token)
+
     youtube = googleapiclient.discovery.build(API_SERVICE_NAME, API_VERSION, credentials=credentials)
 
     request_body = {

@@ -93,11 +93,21 @@ def initialize_upload(youtube, options):
     tags = None
     if options.keywords:
         tags = options.keywords.split(",")
+    output_dir = "output"
+    text_quote = "text_quote"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
+  
+    
+    # Load the quote from the text file
+    with open(quote_file_path, "r") as file:
+        text_quote = file.read()
 
     body = dict(
         snippet=dict(
-            title=options.title,
-            description=options.description,
+            title=text_quote,
+            description=text_quote,
             tags=tags,
             categoryId=options.category
         ),
@@ -167,6 +177,7 @@ if __name__ == '__main__':
     from argparse import ArgumentParser
     argparser = ArgumentParser()
 
+    
     argparser.add_argument("--file", required=True, help="Video file to upload")
     argparser.add_argument("--title", help="Video title", default="Test Title")
     argparser.add_argument("--description", help="Video description",

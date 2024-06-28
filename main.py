@@ -78,7 +78,8 @@ try:
 
     # Create a semi-transparent black background clip with the same size as the text clip
     semi_transparent_bg = ColorClip(size=(fact_text_width, fact_text_height), color=(0, 0, 0)).set_opacity(0.5).set_position(('center', 'center'))
-
+    final = CompositeVideoClip([video_clip, semi_transparent_bg.set_duration(video_clip.duration),
+                                fact_text.set_duration(video_clip.duration)])
     # Export the final video
     final_video_path = f"{output_dir}/{FINAL_VIDEO}"
     final.subclip(0, video_clip.duration).write_videofile(final_video_path, fps=30, codec='libx264')

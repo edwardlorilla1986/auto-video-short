@@ -85,52 +85,7 @@ try:
 except Exception as e:
     print(f"Error processing video: {e}")
 
-# Function to upload video to YouTube and get the video URL
-def upload_to_youtube(file_path):
-    with open(CLIENT_SECRETS_FILE) as f:
-        client_secrets = json.load(f)
 
-    credentials = google.oauth2.credentials.Credentials(
-        None,
-        refresh_token=REFRESH_TOKEN,
-        token_uri="https://oauth2.googleapis.com/token",
-        client_id=client_secrets["installed"]["client_id"],
-        client_secret=client_secrets["installed"]["client_secret"],
-        scopes=SCOPES
-    )
-
-    request = google.auth.transport.requests.Request()
-    credentials.refresh(request)
-
-    youtube = googleapiclient.discovery.build(
-        "youtube", "v3", credentials=credentials)
-
-    request_body = {
-        "snippet": {
-            "categoryId": "22",
-            "title": "Auto Video Short",
-            "description": "This is an auto-generated video short.",
-            "tags": ["auto", "video", "short"]
-        },
-        "status": {
-            "privacyStatus": "public"
-        }
-    }
-
-    media_file = googleapiclient.http.MediaFileUpload(file_path)
-
-    response_upload = youtube.videos().insert(
-        part="snippet,status",
-        body=request_body,
-        media_body=media_file
-    ).execute()
-
-    video_id = response_upload.get("id")
-    youtube_url = f"https://www.youtube.com/watch?v={video_id}"
-    return youtube_url
-
-# Upload the video to YouTube and get the URL
-youtube_url = upload_to_youtube(final_video_path)
 
 # Function to send email with video link
 def send_email(subject, body, to):
@@ -153,7 +108,6 @@ def send_email(subject, body, to):
 email_body = f"""
 <h2>Your Auto Video Short</h2>
 <p>Here is your auto-generated video:</p>
-<p><a href="{youtube_url}">Watch Video</a></p>
 """
 
 send_email(

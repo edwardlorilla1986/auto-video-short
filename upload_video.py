@@ -95,6 +95,7 @@ def initialize_upload(youtube, options):
         tags = options.keywords.split(",")
     output_dir = "output"
     text_quote = "text_quote"
+    quote_file_path = os.path.join(output_dir, "quote.txt")
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     

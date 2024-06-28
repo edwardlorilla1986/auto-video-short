@@ -36,6 +36,12 @@ print(fig_font.renderText("Auto Video Short!!!"))
 text_quote = get_quote()
 make_audio(text_quote)
 
+# Save the quote to a text file
+quote_file_path = os.path.join(output_dir, "quote.txt")
+with open(quote_file_path, "w") as file:
+    file.write(text_quote)
+print(f"Quote saved to {quote_file_path}")
+
 # Download the video clip from an API
 download_video()
 
@@ -102,9 +108,9 @@ def send_email(subject, body, to, file_path):
     print(f"Email sent to {to} with attachment {file_path}")
 
 # Send the final video as an email attachment
-send_email(
-    subject="Your Auto Video Short",
-    body="Please find the attached video.",
-    to=EMAIL_TO,
-    file_path=final_video_path
-)
+#send_email(
+#    subject="Your Auto Video Short",
+#    body="Please find the attached video.",
+#    to=EMAIL_TO,
+#    file_path=final_video_path
+#)

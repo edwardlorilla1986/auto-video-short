@@ -35,10 +35,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Run get_credentials.py
-      env:
-        CREDENTIALS_FILE: "credentials.pickle"
-      run: python get_credentials.py
+  
 
     - name: Update ImageMagick policy
       run: |

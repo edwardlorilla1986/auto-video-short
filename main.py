@@ -71,17 +71,13 @@ try:
     video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
 
     # Create a text clip with the quote
-    fact_text = TextClip(text_quote, color='white', fontsize=50).set_position(('center', 1050))
+    fact_text = TextClip(text_quote, color='white', fontsize=50).set_position(('center', 'center'))
 
-    # Create a semi-transparent black background clip
-    fact_text = TextClip(text_quote, color='white', fontsize=50).set_position(('center', 1050))
+    # Get the size of the text clip
+    fact_text_width, fact_text_height = fact_text.size
 
-    # Create a semi-transparent black background clip
-    semi_transparent_bg = ColorClip(size=(resolution[0], 100), color=(0, 0, 0)).set_opacity(0.5).set_position(('center', 1050))
-
-    # Composite the background and text clips
-    final = CompositeVideoClip([video_clip, semi_transparent_bg.set_duration(video_clip.duration),
-                                fact_text.set_duration(video_clip.duration)])
+    # Create a semi-transparent black background clip with the same size as the text clip
+    semi_transparent_bg = ColorClip(size=(fact_text_width, fact_text_height), color=(0, 0, 0)).set_opacity(0.5).set_position(('center', 'center'))
 
     # Export the final video
     final_video_path = f"{output_dir}/{FINAL_VIDEO}"

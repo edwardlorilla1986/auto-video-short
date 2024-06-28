@@ -58,6 +58,6 @@ jobs:
         git add -f output/*
         git commit -m "Add generated video files"
         git push origin Production
-        python upload_video.py --file="output/final_video.mp4" --title="Summer vacation in California" --description="Had fun surfing in Santa Cruz" --keywords="surfing,Santa Cruz" --category="22" --privacyStatus="private"
+        python upload_video.py --file="output/final_video.mp4" --title="Summer vacation in California" --description="Had fun surfing in Santa Cruz" --keywords="surfing,Santa Cruz" --category="22" --privacyStatus="public"
       env:
         GITHUB_TOKEN: ${{ secrets.PAT }}

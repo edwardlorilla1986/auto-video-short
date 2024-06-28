@@ -74,11 +74,14 @@ try:
     fact_text = TextClip(text_quote, color='white', fontsize=50).set_position(('center', 1050))
 
     # Create a semi-transparent black background clip
-    semi_transparent_bg = ColorClip(size=resolution, color=[0, 0, 0], ismask=False, opacity=0.5)
+    fact_text = TextClip(text_quote, color='white', fontsize=50).set_position(('center', 1050))
+
+    # Create a semi-transparent black background clip
+    semi_transparent_bg = ColorClip(size=(resolution[0], 100), color=(0, 0, 0)).set_opacity(0.5).set_position(('center', 1050))
 
     # Composite the background and text clips
-    final = CompositeVideoClip([video_clip, semi_transparent_bg.set_duration(video_clip.duration).set_position('center'),
-                                fact_text.set_duration(video_clip.duration).set_position(('center', 1050))])
+    final = CompositeVideoClip([video_clip, semi_transparent_bg.set_duration(video_clip.duration),
+                                fact_text.set_duration(video_clip.duration)])
 
     # Export the final video
     final_video_path = f"{output_dir}/{FINAL_VIDEO}"

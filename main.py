@@ -71,7 +71,7 @@ try:
     video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
 
     # Create a text clip with the quote
-    fact_text = TextClip(text_quote, color='white', fontsize=50).set_position(('center', 1050))
+    fact_text = TextClip(text_quote, color='white', fontsize=50,  bg_color='black', bg_opacity=0.5).set_position(('center', 1050))
 
     # Combine the video and text clips
     final = CompositeVideoClip([video_clip, fact_text], size=resolution)

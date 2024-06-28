@@ -1,11 +1,4 @@
 import os
-import pickle
-import google.auth
-import google.auth.transport.requests
-import google.oauth2.credentials
-import google_auth_oauthlib.flow
-import googleapiclient.discovery
-import googleapiclient.errors
 from os import environ
 from dotenv import load_dotenv
 from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip
@@ -16,6 +9,8 @@ from videoProcess.SoundCreate import make_audio
 from videoProcess.VideoDownload import download_video
 import smtplib
 from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 from email.mime.text import MIMEText
 
 # Load environment variables from .env file if running locally
@@ -24,12 +19,9 @@ load_dotenv(".env")
 AUDIO_NAME = environ.get("AUDIO_NAME", "audio.mp3")
 VIDEO_NAME = environ.get("VIDEO_NAME", "video.mp4")
 FINAL_VIDEO = environ.get("FINAL_VIDEO", "final_video.mp4")
-BLOG_EMAIL = environ.get("BLOG_EMAIL")  # Your Blogger posting email address
-EMAIL_USER = environ.get("EMAIL_USER")  # Your email address
-EMAIL_PASS = environ.get("EMAIL_PASS")  # Your email password
-REFRESH_TOKEN = environ.get("REFRESH_TOKEN")  # Your refresh token
-CLIENT_SECRETS_FILE = "client_secrets.json"
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
+EMAIL_USER = environ.get("EMAIL_USER")
+EMAIL_PASS = environ.get("EMAIL_PASS")
+EMAIL_TO = environ.get("EMAIL_TO")
 
 # Ensure output directory exists
 output_dir = "output"
@@ -85,16 +77,21 @@ try:
 except Exception as e:
     print(f"Error processing video: {e}")
 
-
-
-# Function to send email with video link
-def send_email(subject, body, to):
+def send_email(subject, body, to, file_path):
     msg = MIMEMultipart()
     msg['From'] = EMAIL_USER
     msg['To'] = to
     msg['Subject'] = subject
 
-    msg.attach(MIMEText(body, 'html'))
+    msg.attach(MIMEText(body, 'plain'))
+
+    attachment = open(file_path, "rb")
+    part = MIMEBase('application', 'octet-stream')
+    part.set_payload(attachment.read())
+    encoders.encode_base64(part)
+    part.add_header('Content-Disposition', f"attachment; filename= {os.path.basename(file_path)}")
+
+    msg.attach(part)
 
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
@@ -102,16 +99,12 @@ def send_email(subject, body, to):
     text = msg.as_string()
     server.sendmail(EMAIL_USER, to, text)
     server.quit()
-    print(f"Email sent to {to}")
+    print(f"Email sent to {to} with attachment {file_path}")
 
-# Send the email to Blogger with the YouTube video link
-email_body = f"""
-<h2>Your Auto Video Short</h2>
-<p>Here is your auto-generated video:</p>
-"""
-
+# Send the final video as an email attachment
 send_email(
-    subject="Auto Video Short",
-    body=email_body,
-    to=BLOG_EMAIL
+    subject="Your Auto Video Short",
+    body="Please find the attached video.",
+    to=EMAIL_TO,
+    file_path=final_video_path
 )

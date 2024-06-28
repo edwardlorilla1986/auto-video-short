@@ -1,7 +1,7 @@
 import os
 from os import environ
 from dotenv import load_dotenv
-from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip
+from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip, ColorClip
 from textwrap import fill
 from pyfiglet import Figlet
 from videoProcess.Quote import get_quote

@@ -1,21 +1,23 @@
 #!/usr/bin/python
 
-import httplib2
 import os
 import random
 import sys
 import time
 import json
 
+import google.auth
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
-from oauth2client.client import flow_from_clientsecrets
-from oauth2client.file import Storage
-from oauth2client.tools import argparser, run_flow
 
 # Explicitly tell the underlying HTTP transport library not to retry, since
 # we are handling retry logic ourselves.
+import httplib2
+from http.client import NotConnected, IncompleteRead, ImproperConnectionState, CannotSendRequest, CannotSendHeader, ResponseNotReady, BadStatusLine
 httplib2.RETRIES = 1
 
 # Maximum number of times to retry before giving up.
@@ -23,10 +25,10 @@ MAX_RETRIES = 10
 
 # Always retry when these exceptions are raised.
 RETRIABLE_EXCEPTIONS = (httplib2.HttpLib2Error, IOError, 
-                        httplib2.NotConnected, httplib2.IncompleteRead, 
-                        httplib2.ImproperConnectionState, httplib2.CannotSendRequest, 
-                        httplib2.CannotSendHeader, httplib2.ResponseNotReady, 
-                        httplib2.BadStatusLine)
+                        NotConnected, IncompleteRead, 
+                        ImproperConnectionState, CannotSendRequest, 
+                        CannotSendHeader, ResponseNotReady, 
+                        BadStatusLine)
 
 # Always retry when an apiclient.errors.HttpError with one of these status
 # codes is raised.
@@ -72,18 +74,19 @@ VALID_PRIVACY_STATUSES = ("public", "private", "unlisted")
 
 
 def get_authenticated_service(args):
-    flow = flow_from_clientsecrets(CLIENT_SECRETS_FILE,
-                                   scope=YOUTUBE_UPLOAD_SCOPE,
-                                   message=MISSING_CLIENT_SECRETS_MESSAGE)
-
-    storage = Storage("%s-oauth2.json" % sys.argv[0])
-    credentials = storage.get()
-
-    if credentials is None or credentials.invalid:
-        credentials = run_flow(flow, storage, args)
-
-    return build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
-                 http=credentials.authorize(httplib2.Http()))
+    creds = None
+    if os.path.exists("token.json"):
+        creds = Credentials.from_authorized_user_file("token.json", [YOUTUBE_UPLOAD_SCOPE])
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                CLIENT_SECRETS_FILE, [YOUTUBE_UPLOAD_SCOPE])
+            creds = flow.run_local_server(port=0)
+        with open("token.json", "w") as token:
+            token.write(creds.to_json())
+    return build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, credentials=creds)
 
 
 def initialize_upload(youtube, options):
@@ -161,6 +164,9 @@ def resumable_upload(insert_request):
 
 
 if __name__ == '__main__':
+    from argparse import ArgumentParser
+    argparser = ArgumentParser()
+
     argparser.add_argument("--file", required=True, help="Video file to upload")
     argparser.add_argument("--title", help="Video title", default="Test Title")
     argparser.add_argument("--description", help="Video description",

@@ -10,11 +10,7 @@ on:
   schedule:
     - cron: '0 * * * *'  # Runs every hour
   workflow_dispatch:  # Manual trigger
-    inputs:
-      email_to:
-        description: 'Email address to send the video'
-        required: true
-        default: ${{ secrets.EMAIL_TO }}
+  
 
 jobs:
   build:

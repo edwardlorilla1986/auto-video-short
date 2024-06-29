@@ -73,8 +73,8 @@ try:
                   .loop(duration=audio_clip.duration)
                   .resize(resolution))
 
-    # Apply a slight blur to the video
-    blurred_bg = video_clip.fx(vfx.blur, sigma=3)
+    # Apply a slight Gaussian blur to the video
+    blurred_bg = video_clip.fx(vfx.all.gaussian_blur, sigma=3)
 
     # Create a text clip with the quote
     fact_text = (TextClip(text_quote, fontsize=50, color='white', font='Helvetica-Bold', 

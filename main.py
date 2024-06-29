@@ -2,7 +2,7 @@ import os
 from os import environ
 from dotenv import load_dotenv
 from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip, ColorClip
-from textwrap import fill
+from textwrap import fill, shorten
 from pyfiglet import Figlet
 from videoProcess.Quote import get_quote
 from videoProcess.SoundCreate import make_audio
@@ -35,6 +35,9 @@ print(fig_font.renderText("Auto Video Short!!!"))
 # Get a quote and save it to a variable
 text_quote = get_quote()
 make_audio(text_quote)
+
+# Limit the quote to 100 characters
+text_quote = shorten(text_quote, width=100, placeholder="...")
 
 # Save the quote to a text file
 quote_file_path = os.path.join(output_dir, "quote.txt")

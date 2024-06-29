@@ -36,13 +36,10 @@ print(fig_font.renderText("Auto Video Short!!!"))
 text_quote = get_quote()
 make_audio(text_quote)
 
-# Limit the quote to 100 characters
-text_quote = shorten(text_quote, width=100, placeholder="...")
-
 # Save the quote to a text file
 quote_file_path = os.path.join(output_dir, "quote.txt")
 with open(quote_file_path, "w") as file:
-    file.write(text_quote)
+    file.write(shorten(text_quote, width=100, placeholder="..."))
 print(f"Quote saved to {quote_file_path}")
 
 # Download the video clip from an API

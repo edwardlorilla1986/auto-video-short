@@ -74,7 +74,7 @@ try:
                   .resize(resolution))
 
     # Apply a slight blur to the video
-    blurred_bg = video_clip.fx(vfx.blur, sigma=3)
+    blurred_bg = video_clip.fx(vfx.gaussian_blur, sigma=3)
 
     # Create a text clip with the quote
     fact_text = (TextClip(text_quote, fontsize=50, color='white', font='Helvetica-Bold', 
@@ -88,7 +88,7 @@ try:
     animated_text = fact_text.set_position(lambda t: ('center', 'center' + 20*np.sin(t)))
 
     # Create a semi-transparent gradient overlay
-    gradient = (ColorGradientClip(size=resolution, 
+    gradient = (color_gradient(size=resolution, 
                                   colors=[(0,0,0,0.7), (0,0,0,0.3)], 
                                   start_pos=(0,0), 
                                   end_pos=(0,1080))

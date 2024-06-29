@@ -1,7 +1,7 @@
 import os
 from os import environ
 from dotenv import load_dotenv
-from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip, ColorClip
+from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip, ColorClip, vfx
 from textwrap import fill
 from pyfiglet import Figlet
 from videoProcess.Quote import get_quote
@@ -67,19 +67,40 @@ resolution = (1080, 1920)
 audio_clip = AudioFileClip(audio_path)
 
 try:
-    # Load the video clip, set the audio, loop the video, and resize
-    video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
+    video_clip = (VideoFileClip(video_path, audio=False)
+                  .set_audio(audio_clip)
+                  .loop(duration=audio_clip.duration)
+                  .resize(resolution))
+
+    # Apply a slight blur to the video
+    blurred_bg = video_clip.fx(vfx.blur, sigma=3)
 
     # Create a text clip with the quote
-    fact_text = TextClip(text_quote, color='white', fontsize=50).set_position(('center', 'center'))
+    fact_text = (TextClip(text_quote, fontsize=50, color='white', font='Helvetica-Bold', 
+                          kerning=2, interline=1.5, align='center', size=(resolution[0]*0.8, None))
+                 .set_position(('center', 'center'))
+                 .set_duration(video_clip.duration)
+                 .crossfadein(1)
+                 .crossfadeout(1))
 
-    # Get the size of the text clip
-    fact_text_width, fact_text_height = fact_text.size
+    # Add a subtle animation to the text
+    animated_text = fact_text.set_position(lambda t: ('center', 'center' + 20*np.sin(t)))
 
-    # Create a semi-transparent black background clip with the same size as the text clip
-    semi_transparent_bg = ColorClip(size=(fact_text_width, fact_text_height), color=(0, 0, 0)).set_opacity(0.5).set_position(('center', 'center'))
-    final = CompositeVideoClip([video_clip, semi_transparent_bg.set_duration(video_clip.duration),
-                                fact_text.set_duration(video_clip.duration)])
+    # Create a semi-transparent gradient overlay
+    gradient = (ColorGradientClip(size=resolution, 
+                                  colors=[(0,0,0,0.7), (0,0,0,0.3)], 
+                                  start_pos=(0,0), 
+                                  end_pos=(0,1080))
+                .set_duration(video_clip.duration))
+
+    # Create a watermark
+    watermark = (TextClip("EdwardLanceLorilla", fontsize=30, color='white', font='Arial-Bold')
+                 .set_position(('right', 'bottom'))
+                 .set_duration(video_clip.duration)
+                 .set_opacity(0.5))
+
+    # Compose the final video
+    final = CompositeVideoClip([blurred_bg, gradient, animated_text, watermark])
     # Export the final video
     final_video_path = f"{output_dir}/{FINAL_VIDEO}"
     final.subclip(0, video_clip.duration).write_videofile(final_video_path, fps=30, codec='libx264')

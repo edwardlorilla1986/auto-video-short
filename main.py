@@ -116,7 +116,7 @@ video_title = 'Your Video Title'
 video_description = 'Your Video Description'
 video_file_path = f"{output_dir}/{FINAL_VIDEO}"
 PAGE_ID = "332087273320790"
-PAGE_ACCESS_TOKEN = "EAAWuCPnPZAZA4BO25aybcV45kgkw7oGHr4srFJD7L3TzXT7ZBHvzHoxk1BClkvZCvRo25pY4ZBOavHcTPUhId0ljdNks81tqpuYfnXC6COpiDjSSNOY4SrwWP8HstzI4ytXdqq7W9ERfJenhfLBcOXPdNPpzZBFe5AV0pYUIA1ZAokUTnXfBpDrsTnKPL5vbNejZCtLo3A1o2LyOwyJkzeILb8xU4mVX6jXlpgZDZD"
+PAGE_ACCESS_TOKEN = "EAAWuCPnPZAZA4BOyeaEgcBrmuDdqFKdZBC4I3LqZCZALtUvlNWgo6CI3fYT7JyzkhOdlOWaf6OFRjnSZAK9FwqRivZByioIzAJK0cx1SvsAMOk4RkS14gip7QUPrS5zN8tqEk9G4P2S2PaOhoVfaD50QnLl1RbN6VXFJ6YzUD8VXGGOl7aZB3DGN4TJf11KA28rJ9lgXyAE8ZCzqCVww9uHHao5X1XvlBrooZCqQZDZD"
 # URL for uploading video
 url = f'https://graph.facebook.com/v11.0/{PAGE_ID}/videos'
 

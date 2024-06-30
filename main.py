@@ -1,4 +1,5 @@
 import os
+import requests
 from os import environ
 from dotenv import load_dotenv
 from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip, ColorClip

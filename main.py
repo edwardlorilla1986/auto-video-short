@@ -39,7 +39,7 @@ make_audio(text_quote)
 # Save the quote to a text file
 quote_file_path = os.path.join(output_dir, "quote.txt")
 with open(quote_file_path, "w") as file:
-    file.write(shorten(text_quote, width=100, placeholder="..."))
+    file.write(shorten(text_quote, width=90, placeholder="..."))
 print(f"Quote saved to {quote_file_path}")
 
 # Download the video clip from an API

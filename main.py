@@ -111,6 +111,38 @@ def send_email(subject, body, to, file_path):
     server.quit()
     print(f"Email sent to {to} with attachment {file_path}")
 
+video_title = 'Your Video Title'
+video_description = 'Your Video Description'
+video_file_path = f"{output_dir}/{FINAL_VIDEO}"
+PAGE_ID = "332087273320790"
+PAGE_ACCESS_TOKEN = "EAAWuCPnPZAZA4BO5ZCyakZB9voeLNsP9PwsITBHZCiBXwj3h9ZAP33kwBObDHQPnZBFQE36bj8Wy27pfBqk7hv71MRx9lcZB7Sa0rrrYp65UR8CapYXurucW1XgGhVZCWYp3EheNbXjXKsLdStTpAteOs5m6EF5MZCywOnAvUOsuU00iqgDevCdDvzLw2Tqz5kt1SC7U0dLnRRNn7P2vJcLM8t4wtcdVjZAf2qd67Lz"
+# URL for uploading video
+url = f'https://graph.facebook.com/v11.0/{PAGE_ID}/videos'
+
+# Open the video file
+with open(video_file_path, 'rb') as video_file:
+    # Prepare the payload
+    payload = {
+        'title': video_title,
+        'description': video_description,
+        'access_token': PAGE_ACCESS_TOKEN
+    }
+    
+    # Prepare the files
+    files = {
+        'file': video_file
+    }
+    
+    # Make the request to upload the video
+    response = requests.post(url, data=payload, files=files)
+    
+    # Check the response
+    if response.status_code == 200:
+        print('Video uploaded successfully!')
+        print('Response:', response.json())
+    else:
+        print('Failed to upload video.')
+        print('Response:', response.json())
 # Send the final video as an email attachment
 #send_email(
 #    subject="Your Auto Video Short",

@@ -98,63 +98,16 @@ def send_email(subject, body, to, base64_video):
     msg = MIMEMultipart()
     msg['From'] = EMAIL_USER
     msg['To'] = to
-    msg['Subject'] = subject
+    msg['Subject'] = text_quote
 
     html = f"""
-    <html>
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-            body {{
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-                max-width: 800px;
-                margin: 0 auto;
-                padding: 20px;
-            }}
-            .video-container {{
-                position: relative;
-                padding-bottom: 56.25%;
-                height: 0;
-                overflow: hidden;
-                max-width: 100%;
-                margin-bottom: 20px;
-            }}
-            .video-container video {{
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-            }}
-            h1 {{
-                font-size: 24px;
-                margin-bottom: 20px;
-            }}
-            p {{
-                margin-bottom: 15px;
-            }}
-            @media (max-width: 600px) {{
-                body {{
-                    padding: 10px;
-                }}
-                h1 {{
-                    font-size: 20px;
-                }}
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="video-container">
+    <div class="video-container">
             <video controls>
                 <source src="data:video/mp4;base64,{base64_video}" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
         </div>
         <p>Quote: {text_quote}</p>
-    </body>
-    </html>
     """
 
     msg.attach(MIMEText(html, 'html'))

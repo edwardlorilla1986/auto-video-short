@@ -115,8 +115,8 @@ def send_email(subject, body, to, file_path):
 video_title = 'Your Video Title'
 video_description = 'Your Video Description'
 video_file_path = f"{output_dir}/{FINAL_VIDEO}"
-PAGE_ID = "357204164144002"
-PAGE_ACCESS_TOKEN = "EAAWuCPnPZAZA4BO3zgRrzx3rb7twRvKdwEvQGX7ZB0dmBPbU0ySPoZA7t3AKYwUSj3aSZAGXugiyd3ygW7NoRPl66I8qzAEuC6J97OZBMJArEQgrcttRp5iq4q3ZBNZAaaFKL9fAicmDldOZBCY7iQXLyThWGFAi6j9pkBhnZBMCLbVZBAx1E2OWlo7tr2H9PzUZCKYdc2y2jy4LsDqAgZCQ3ZCOiOJkInmmdr3KUjmzZAmRzSSJ4EZD"
+PAGE_ID = "332087273320790"
+PAGE_ACCESS_TOKEN = "EAAWuCPnPZAZA4BO2fap9Gv14qvVWhAgaCVqNB6SpB7CBsvOdk2NAPFneuZCkG1amHspjFECbZBsTEl8oEWYyxX63pZCndVfyDsBE165Dc8QCZCrAOt2zZAORsHh9gamQi3emAXLM0exwDKLxCm4SF9rKYwYwBpSzq22FwwNjSIJ14pN3ZBqA68Q6ziXEt1BRbctYZA8QidSsjBqFpMRfAawQyQ5qolQUoGEqMrQZDZD"
 # URL for uploading video
 url = f'https://graph.facebook.com/v11.0/{PAGE_ID}/videos'
 

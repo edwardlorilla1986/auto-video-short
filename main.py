@@ -146,8 +146,6 @@ def send_email(subject, body, to, base64_video):
         </style>
     </head>
     <body>
-        <h1>Your Auto Video Short</h1>
-        <p>Here's your automatically generated video short:</p>
         <div class="video-container">
             <video controls>
                 <source src="data:video/mp4;base64,{base64_video}" type="video/mp4">
@@ -155,7 +153,6 @@ def send_email(subject, body, to, base64_video):
             </video>
         </div>
         <p>Quote: {text_quote}</p>
-        <p>We hope you enjoy your personalized content!</p>
     </body>
     </html>
     """

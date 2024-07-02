@@ -1,4 +1,5 @@
 import os
+import base64
 import requests
 from os import environ
 from dotenv import load_dotenv
@@ -10,8 +11,6 @@ from videoProcess.SoundCreate import make_audio
 from videoProcess.VideoDownload import download_video
 import smtplib
 from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
 from email.mime.text import MIMEText
 
 # Load environment variables from .env file if running locally
@@ -88,21 +87,33 @@ try:
 except Exception as e:
     print(f"Error processing video: {e}")
 
-def send_email(subject, body, to, file_path):
+# Convert video to base64
+def video_to_base64(video_path):
+    with open(video_path, "rb") as video_file:
+        base64_encoded_video = base64.b64encode(video_file.read()).decode('utf-8')
+    return base64_encoded_video
+
+base64_video = video_to_base64(final_video_path)
+
+def send_email(subject, body, to, base64_video):
     msg = MIMEMultipart()
     msg['From'] = EMAIL_USER
     msg['To'] = to
     msg['Subject'] = subject
 
-    msg.attach(MIMEText(body, 'plain'))
+    html = f"""
+    <html>
+    <body>
+        <p>{body}</p>
+        <video controls>
+            <source src="data:video/mp4;base64,{base64_video}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </body>
+    </html>
+    """
 
-    attachment = open(file_path, "rb")
-    part = MIMEBase('application', 'octet-stream')
-    part.set_payload(attachment.read())
-    encoders.encode_base64(part)
-    part.add_header('Content-Disposition', f"attachment; filename= {os.path.basename(file_path)}")
-
-    msg.attach(part)
+    msg.attach(MIMEText(html, 'html'))
 
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
@@ -110,44 +121,11 @@ def send_email(subject, body, to, file_path):
     text = msg.as_string()
     server.sendmail(EMAIL_USER, to, text)
     server.quit()
-    print(f"Email sent to {to} with attachment {file_path}")
+    print(f"Email sent to {to} with embedded video")
 
-video_title = 'Your Video Title'
-video_description = 'Your Video Description'
-video_file_path = f"{output_dir}/{FINAL_VIDEO}"
-PAGE_ID = "332087273320790"
-PAGE_ACCESS_TOKEN = "EAAWuCPnPZAZA4BO2fap9Gv14qvVWhAgaCVqNB6SpB7CBsvOdk2NAPFneuZCkG1amHspjFECbZBsTEl8oEWYyxX63pZCndVfyDsBE165Dc8QCZCrAOt2zZAORsHh9gamQi3emAXLM0exwDKLxCm4SF9rKYwYwBpSzq22FwwNjSIJ14pN3ZBqA68Q6ziXEt1BRbctYZA8QidSsjBqFpMRfAawQyQ5qolQUoGEqMrQZDZD"
-# URL for uploading video
-url = f'https://graph.facebook.com/v11.0/{PAGE_ID}/videos'
-
-# Open the video file
-with open(video_file_path, 'rb') as video_file:
-    # Prepare the payload
-    payload = {
-        'title': video_title,
-        'description': video_description,
-        'access_token': PAGE_ACCESS_TOKEN
-    }
-    
-    # Prepare the files
-    files = {
-        'file': video_file
-    }
-    
-    # Make the request to upload the video
-    response = requests.post(url, data=payload, files=files)
-    
-    # Check the response
-    if response.status_code == 200:
-        print('Video uploaded successfully!')
-        print('Response:', response.json())
-    else:
-        print('Failed to upload video.')
-        print('Response:', response.json())
-# Send the final video as an email attachment
-#send_email(
-#    subject="Your Auto Video Short",
-#    body="Please find the attached video.",
-#    to=EMAIL_TO,
-#    file_path=final_video_path
-#)
+send_email(
+    subject="Your Auto Video Short",
+    body="Please find the embedded video below.",
+    to=EMAIL_TO,
+    base64_video=base64_video
+)

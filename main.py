@@ -99,10 +99,9 @@ def send_email(subject, body, to, base64_video):
     msg = MIMEMultipart()
     msg['From'] = EMAIL_USER
     msg['To'] = to
-    msg['Subject'] = text_quote
+    msg['Subject'] = subject
 
     html = f"""
-    f"""
     <html>
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -160,7 +159,6 @@ def send_email(subject, body, to, base64_video):
         <p>We hope you enjoy your personalized content!</p>
     </body>
     </html>
-    """
     """
 
     msg.attach(MIMEText(html, 'html'))

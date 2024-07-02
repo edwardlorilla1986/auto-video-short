@@ -1,6 +1,5 @@
 import os
 import base64
-import requests
 from os import environ
 from dotenv import load_dotenv
 from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip, ColorClip
@@ -172,7 +171,7 @@ def send_email(subject, body, to, base64_video):
     print(f"Email sent to {to} with embedded video")
 
 send_email(
-    subject="Your Auto Video Short",
+    subject=text_quote,
     body="Please find the embedded video below.",
     to=EMAIL_TO,
     base64_video=base64_video

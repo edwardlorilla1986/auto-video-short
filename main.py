@@ -1,6 +1,6 @@
 import os
-import requests
 import base64
+import smtplib
 from os import environ
 from dotenv import load_dotenv
 from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip, ColorClip
@@ -9,16 +9,20 @@ from pyfiglet import Figlet
 from videoProcess.Quote import get_quote
 from videoProcess.SoundCreate import make_audio
 from videoProcess.VideoDownload import download_video
-import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+from google.oauth2.credentials import Credentials
 
 # Load environment variables from .env file if running locally
 load_dotenv(".env")
 
-API_KEY = environ.get("API_KEY")
+# Constants and configuration
+CLIENT_ID = environ.get("CLIENT_ID")
+CLIENT_SECRET = environ.get("CLIENT_SECRET")
+REFRESH_TOKEN = environ.get("REFRESH_TOKEN")
 AUDIO_NAME = environ.get("AUDIO_NAME", "audio.mp3")
 VIDEO_NAME = environ.get("VIDEO_NAME", "video.mp4")
 FINAL_VIDEO = environ.get("FINAL_VIDEO", "final_video.mp4")
@@ -39,7 +43,6 @@ print(fig_font.renderText("Auto Video Short!!!"))
 
 # Get a quote and save it to a variable
 text_quote = get_quote()
-shorten_quote = shorten(text_quote, width=90, placeholder="...")
 make_audio(text_quote)
 
 # Save the quote to a text file
@@ -200,9 +203,20 @@ else:
     print('Failed to upload video.')
     print('Response:', response)
 
+def get_authenticated_service():
+    credentials = Credentials(
+        None,
+        refresh_token=REFRESH_TOKEN,
+        token_uri='https://oauth2.googleapis.com/token',
+        client_id=CLIENT_ID,
+        client_secret=CLIENT_SECRET
+    )
+    credentials.refresh(Request())
+    return build('youtube', 'v3', credentials=credentials)
+
 def upload_video_to_youtube(video_file_path, title, description, tags, category_id, privacy_status):
     try:
-        youtube = build('youtube', 'v3', developerKey=API_KEY)
+        youtube = get_authenticated_service()
 
         body = {
             'snippet': {
@@ -232,10 +246,10 @@ def upload_video_to_youtube(video_file_path, title, description, tags, category_
         return {"error": str(e)}
 
 # Example usage
-youtube_title = shorten_quote
-youtube_description = text_quote
-youtube_tags = ['cats', 'facts']
-youtube_category_id = '22' 
+youtube_title = 'Your Video Title'
+youtube_description = 'Your Video Description'
+youtube_tags = ['tag1', 'tag2']
+youtube_category_id = '22'  # YouTube category ID
 youtube_privacy_status = 'public'
 
 response = upload_video_to_youtube(video_file_path, youtube_title, youtube_description, youtube_tags, youtube_category_id, youtube_privacy_status)

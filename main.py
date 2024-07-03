@@ -129,43 +129,58 @@ send_email(
 )
 
 def upload_video_to_facebook(video_file_path, page_id, page_access_token, video_title, video_description):
-    # Initiate the upload
-    init_url = f"https://graph-video.facebook.com/v12.0/{page_id}/videos"
-    init_params = {
-        "upload_phase": "start",
-        "access_token": page_access_token,
-        "file_size": os.path.getsize(video_file_path)
-    }
-    init_response = requests.post(init_url, data=init_params).json()
-    upload_session_id = init_response['upload_session_id']
-    video_id = init_response['video_id']
+    try:
+        # Initiate the upload
+        init_url = f"https://graph-video.facebook.com/v12.0/{page_id}/videos"
+        init_params = {
+            "upload_phase": "start",
+            "access_token": page_access_token,
+            "file_size": os.path.getsize(video_file_path)
+        }
+        init_response = requests.post(init_url, data=init_params).json()
+        print("Init response:", init_response)
 
-    # Upload the video file
-    with open(video_file_path, 'rb') as video_file:
-        video_data = video_file.read()
-    upload_url = f"https://graph-video.facebook.com/v12.0/{page_id}/videos"
-    upload_params = {
-        "upload_phase": "transfer",
-        "access_token": page_access_token,
-        "upload_session_id": upload_session_id,
-        "start_offset": 0,
-        "video_file_chunk": video_data
-    }
-    upload_response = requests.post(upload_url, files={"video_file_chunk": video_data}, data=upload_params).json()
+        if 'upload_session_id' not in init_response:
+            raise ValueError(f"Failed to initiate upload: {init_response}")
 
-    # Finish the upload
-    finish_url = f"https://graph-video.facebook.com/v20.0/{page_id}/videos"
-    finish_params = {
-        "upload_phase": "finish",
-        "access_token": page_access_token,
-        "upload_session_id": upload_session_id,
-        "title": video_title,
-        "description": video_description
-    }
-    finish_response = requests.post(finish_url, data=finish_params).json()
+        upload_session_id = init_response['upload_session_id']
+        video_id = init_response['video_id']
 
-    return finish_response
+        # Upload the video file
+        with open(video_file_path, 'rb') as video_file:
+            video_data = video_file.read()
+        upload_url = f"https://graph-video.facebook.com/v12.0/{page_id}/videos"
+        upload_params = {
+            "upload_phase": "transfer",
+            "access_token": page_access_token,
+            "upload_session_id": upload_session_id,
+            "start_offset": 0,
+            "video_file_chunk": video_data
+        }
+        upload_response = requests.post(upload_url, files={"video_file_chunk": video_data}, data=upload_params).json()
+        print("Upload response:", upload_response)
 
+        if 'start_offset' not in upload_response or upload_response['start_offset'] != '0':
+            raise ValueError(f"Failed to upload video: {upload_response}")
+
+        # Finish the upload
+        finish_url = f"https://graph-video.facebook.com/v12.0/{page_id}/videos"
+        finish_params = {
+            "upload_phase": "finish",
+            "access_token": page_access_token,
+            "upload_session_id": upload_session_id,
+            "title": video_title,
+            "description": video_description
+        }
+        finish_response = requests.post(finish_url, data=finish_params).json()
+        print("Finish response:", finish_response)
+
+        return finish_response
+    except Exception as e:
+        print(f"Error uploading video: {e}")
+        return {"error": str(e)}
+
+# Example usage
 video_title = 'Your Video Title'
 video_description = 'Your Video Description'
 video_file_path = f"{output_dir}/{FINAL_VIDEO}"

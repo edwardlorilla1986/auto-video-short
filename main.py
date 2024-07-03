@@ -99,7 +99,7 @@ def send_email(subject, body, to, base64_video):
     msg = MIMEMultipart()
     msg['From'] = EMAIL_USER
     msg['To'] = to
-    msg['Subject'] = text_quote
+    msg['Subject'] = subject
 
     html = f"""
     <div class="video-container">
@@ -127,35 +127,56 @@ send_email(
     to=EMAIL_TO,
     base64_video=base64_video
 )
+
+def upload_video_to_facebook(video_file_path, page_id, page_access_token, video_title, video_description):
+    # Initiate the upload
+    init_url = f"https://graph-video.facebook.com/v12.0/{page_id}/videos"
+    init_params = {
+        "upload_phase": "start",
+        "access_token": page_access_token,
+        "file_size": os.path.getsize(video_file_path)
+    }
+    init_response = requests.post(init_url, data=init_params).json()
+    upload_session_id = init_response['upload_session_id']
+    video_id = init_response['video_id']
+
+    # Upload the video file
+    with open(video_file_path, 'rb') as video_file:
+        video_data = video_file.read()
+    upload_url = f"https://graph-video.facebook.com/v12.0/{page_id}/videos"
+    upload_params = {
+        "upload_phase": "transfer",
+        "access_token": page_access_token,
+        "upload_session_id": upload_session_id,
+        "start_offset": 0,
+        "video_file_chunk": video_data
+    }
+    upload_response = requests.post(upload_url, files={"video_file_chunk": video_data}, data=upload_params).json()
+
+    # Finish the upload
+    finish_url = f"https://graph-video.facebook.com/v12.0/{page_id}/videos"
+    finish_params = {
+        "upload_phase": "finish",
+        "access_token": page_access_token,
+        "upload_session_id": upload_session_id,
+        "title": video_title,
+        "description": video_description
+    }
+    finish_response = requests.post(finish_url, data=finish_params).json()
+
+    return finish_response
+
 video_title = 'Your Video Title'
 video_description = 'Your Video Description'
 video_file_path = f"{output_dir}/{FINAL_VIDEO}"
-PAGE_ID = "332087273320790"
-PAGE_ACCESS_TOKEN = "EAAWuCPnPZAZA4BO8i5Qy40AuOH85HmOlCXrdCW7HofxoKJfRtSVUNAZAHhzdnYHcix1UxkOUg1lIWzbThNcmztdNLH4UIZAHXQZCZCSKhHJyvlGIxFmn9kJWnAGUwOPQbsaX3CouZAJZBWMTHU74W1QMcVLTy61FeXyerezytSHSJV7ixM7u87kUZCGmNHHClrNxDxcEPKUGcPQQo7X5wvec8A48L"
-# URL for uploading video
-url = f'https://graph.facebook.com/v20.0/{PAGE_ID}/video_reels'
+PAGE_ID = environ.get("PAGE_ID")
+PAGE_ACCESS_TOKEN = environ.get("PAGE_ACCESS_TOKEN")
 
-# Open the video file
-with open(video_file_path, 'rb') as video_file:
-    # Prepare the payload
-    payload = {
-        'title': video_title,
-        'description': video_description,
-        'access_token': PAGE_ACCESS_TOKEN
-    }
-    
-    # Prepare the files
-    files = {
-        'file': video_file
-    }
-    
-    # Make the request to upload the video
-    response = requests.post(url, data=payload, files=files)
-    
-    # Check the response
-    if response.status_code == 200:
-        print('Video uploaded successfully!')
-        print('Response:', response.json())
-    else:
-        print('Failed to upload video.')
-        print('Response:', response.json())
+response = upload_video_to_facebook(video_file_path, PAGE_ID, PAGE_ACCESS_TOKEN, video_title, video_description)
+
+if 'success' in response:
+    print('Video uploaded successfully!')
+    print('Response:', response)
+else:
+    print('Failed to upload video.')
+    print('Response:', response)

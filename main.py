@@ -133,7 +133,7 @@ video_file_path = f"{output_dir}/{FINAL_VIDEO}"
 PAGE_ID = "332087273320790"
 PAGE_ACCESS_TOKEN = "EAAWuCPnPZAZA4BO8i5Qy40AuOH85HmOlCXrdCW7HofxoKJfRtSVUNAZAHhzdnYHcix1UxkOUg1lIWzbThNcmztdNLH4UIZAHXQZCZCSKhHJyvlGIxFmn9kJWnAGUwOPQbsaX3CouZAJZBWMTHU74W1QMcVLTy61FeXyerezytSHSJV7ixM7u87kUZCGmNHHClrNxDxcEPKUGcPQQo7X5wvec8A48L"
 # URL for uploading video
-url = f'https://graph.facebook.com/v20.0/{PAGE_ID}/videos'
+url = f'https://graph.facebook.com/v20.0/{PAGE_ID}/video_reels'
 
 # Open the video file
 with open(video_file_path, 'rb') as video_file:

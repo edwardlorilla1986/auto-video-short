@@ -154,7 +154,7 @@ def upload_video_to_facebook(video_file_path, page_id, page_access_token, video_
     upload_response = requests.post(upload_url, files={"video_file_chunk": video_data}, data=upload_params).json()
 
     # Finish the upload
-    finish_url = f"https://graph-video.facebook.com/v12.0/{page_id}/videos"
+    finish_url = f"https://graph-video.facebook.com/v20.0/{page_id}/videos"
     finish_params = {
         "upload_phase": "finish",
         "access_token": page_access_token,

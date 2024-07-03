@@ -12,16 +12,21 @@ from videoProcess.VideoDownload import download_video
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
 
 # Load environment variables from .env file if running locally
 load_dotenv(".env")
 
+API_KEY = environ.get("API_KEY")
 AUDIO_NAME = environ.get("AUDIO_NAME", "audio.mp3")
 VIDEO_NAME = environ.get("VIDEO_NAME", "video.mp4")
 FINAL_VIDEO = environ.get("FINAL_VIDEO", "final_video.mp4")
 EMAIL_USER = environ.get("EMAIL_USER")
 EMAIL_PASS = environ.get("EMAIL_PASS")
 EMAIL_TO = environ.get("EMAIL_TO")
+PAGE_ID = environ.get("PAGE_ID")
+PAGE_ACCESS_TOKEN = environ.get("PAGE_ACCESS_TOKEN")
 
 # Ensure output directory exists
 output_dir = "output"
@@ -34,6 +39,7 @@ print(fig_font.renderText("Auto Video Short!!!"))
 
 # Get a quote and save it to a variable
 text_quote = get_quote()
+shorten_quote = shorten(text_quote, width=90, placeholder="...")
 make_audio(text_quote)
 
 # Save the quote to a text file
@@ -184,8 +190,6 @@ def upload_video_to_facebook(video_file_path, page_id, page_access_token, video_
 video_title = 'Your Video Title'
 video_description = 'Your Video Description'
 video_file_path = f"{output_dir}/{FINAL_VIDEO}"
-PAGE_ID = environ.get("PAGE_ID")
-PAGE_ACCESS_TOKEN = environ.get("PAGE_ACCESS_TOKEN")
 
 response = upload_video_to_facebook(video_file_path, PAGE_ID, PAGE_ACCESS_TOKEN, video_title, video_description)
 
@@ -194,4 +198,51 @@ if 'success' in response:
     print('Response:', response)
 else:
     print('Failed to upload video.')
+    print('Response:', response)
+
+def upload_video_to_youtube(video_file_path, title, description, tags, category_id, privacy_status):
+    try:
+        youtube = build('youtube', 'v3', developerKey=API_KEY)
+
+        body = {
+            'snippet': {
+                'title': title,
+                'description': description,
+                'tags': tags,
+                'categoryId': category_id
+            },
+            'status': {
+                'privacyStatus': privacy_status
+            }
+        }
+
+        media = MediaFileUpload(video_file_path, chunksize=-1, resumable=True)
+
+        request = youtube.videos().insert(
+            part="snippet,status",
+            body=body,
+            media_body=media
+        )
+
+        response = request.execute()
+        print(f"Video uploaded to YouTube: {response['id']}")
+        return response
+    except Exception as e:
+        print(f"Error uploading video to YouTube: {e}")
+        return {"error": str(e)}
+
+# Example usage
+youtube_title = shorten_quote
+youtube_description = text_quote
+youtube_tags = ['cats', 'facts']
+youtube_category_id = '22' 
+youtube_privacy_status = 'public'
+
+response = upload_video_to_youtube(video_file_path, youtube_title, youtube_description, youtube_tags, youtube_category_id, youtube_privacy_status)
+
+if 'id' in response:
+    print('Video uploaded to YouTube successfully!')
+    print('Response:', response)
+else:
+    print('Failed to upload video to YouTube.')
     print('Response:', response)

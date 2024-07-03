@@ -190,8 +190,8 @@ def upload_video_to_facebook(video_file_path, page_id, page_access_token, video_
         return {"error": str(e)}
 
 # Example usage
-video_title = 'Your Video Title'
-video_description = 'Your Video Description'
+video_title = text_quote
+video_description = text_quote
 video_file_path = f"{output_dir}/{FINAL_VIDEO}"
 
 response = upload_video_to_facebook(video_file_path, PAGE_ID, PAGE_ACCESS_TOKEN, video_title, video_description)
@@ -246,9 +246,9 @@ def upload_video_to_youtube(video_file_path, title, description, tags, category_
         return {"error": str(e)}
 
 # Example usage
-youtube_title = 'Your Video Title'
-youtube_description = 'Your Video Description'
-youtube_tags = ['tag1', 'tag2']
+youtube_title = shorten(text_quote, width=90, placeholder="...")
+youtube_description = text_quote
+youtube_tags = ['cats', 'facts']
 youtube_category_id = '22'  # YouTube category ID
 youtube_privacy_status = 'public'
 

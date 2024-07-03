@@ -1,5 +1,5 @@
 import os
-import request
+import requests
 import base64
 from os import environ
 from dotenv import load_dotenv

@@ -19,7 +19,6 @@ from google.oauth2.credentials import Credentials
 
 # Load environment variables from .env file if running locally
 load_dotenv(".env")
-
 # Constants and configuration
 CLIENT_ID = environ.get("CLIENT_ID")
 CLIENT_SECRET = environ.get("CLIENT_SECRET")

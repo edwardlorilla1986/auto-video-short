@@ -1,5 +1,6 @@
 import os
 import base64
+import requests
 import smtplib
 from os import environ
 from dotenv import load_dotenv

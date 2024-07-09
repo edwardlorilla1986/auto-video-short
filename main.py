@@ -19,6 +19,7 @@ from google.oauth2.credentials import Credentials
 
 # Load environment variables from .env file if running locally
 load_dotenv(".env")
+
 # Constants and configuration
 CLIENT_ID = environ.get("CLIENT_ID")
 CLIENT_SECRET = environ.get("CLIENT_SECRET")
@@ -31,6 +32,8 @@ EMAIL_PASS = environ.get("EMAIL_PASS")
 EMAIL_TO = environ.get("EMAIL_TO")
 PAGE_ID = environ.get("PAGE_ID")
 PAGE_ACCESS_TOKEN = environ.get("PAGE_ACCESS_TOKEN")
+IG_USER_ID = environ.get("IG_USER_ID")
+IG_ACCESS_TOKEN = environ.get("IG_ACCESS_TOKEN")
 
 # Ensure output directory exists
 output_dir = "output"
@@ -203,6 +206,47 @@ else:
     print('Failed to upload video.')
     print('Response:', response)
 
+def upload_video_to_instagram(video_file_path, caption, access_token, ig_user_id):
+    try:
+        # Step 1: Upload the video
+        upload_url = f"https://graph.facebook.com/v15.0/{ig_user_id}/media"
+        video_params = {
+            'access_token': access_token,
+            'media_type': 'VIDEO',
+            'video_url': video_file_path,
+            'caption': caption
+        }
+
+        upload_response = requests.post(upload_url, data=video_params).json()
+        if 'id' not in upload_response:
+            raise ValueError(f"Error uploading video: {upload_response}")
+
+        creation_id = upload_response['id']
+
+        # Step 2: Publish the video
+        publish_url = f"https://graph.facebook.com/v15.0/{ig_user_id}/media_publish"
+        publish_params = {
+            'access_token': access_token,
+            'creation_id': creation_id
+        }
+
+        publish_response = requests.post(publish_url, data=publish_params).json()
+        return publish_response
+    except Exception as e:
+        print(f"Error uploading video to Instagram: {e}")
+        return {"error": str(e)}
+
+# Example usage for Instagram
+ig_caption = text_quote
+ig_response = upload_video_to_instagram(video_file_path, ig_caption, IG_ACCESS_TOKEN, IG_USER_ID)
+
+if 'id' in ig_response:
+    print('Video uploaded and published to Instagram successfully!')
+    print('Response:', ig_response)
+else:
+    print('Failed to upload and publish video to Instagram.')
+    print('Response:', ig_response)
+
 def get_authenticated_service():
     credentials = Credentials(
         None,
@@ -245,7 +289,7 @@ def upload_video_to_youtube(video_file_path, title, description, tags, category_
         print(f"Error uploading video to YouTube: {e}")
         return {"error": str(e)}
 
-# Example usage
+# Example usage for YouTube
 youtube_title = shorten(text_quote, width=90, placeholder="...")
 youtube_description = text_quote
 youtube_tags = ['cats', 'facts']

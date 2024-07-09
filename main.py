@@ -290,7 +290,7 @@ def upload_video_to_youtube(video_file_path, title, description, tags, category_
         return {"error": str(e)}
 
 # Example usage for YouTube
-youtube_title = shorten(text_quote, width=90, placeholder="...")
+youtube_title = shorten("https://amzn.to/4cv2MXh" + text_quote, width=90, placeholder="...")
 youtube_description = text_quote
 youtube_tags = ['cats', 'facts']
 youtube_category_id = '22'  # YouTube category ID

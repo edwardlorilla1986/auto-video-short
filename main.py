@@ -190,7 +190,7 @@ def upload_video_to_facebook(video_file_path, page_id, page_access_token, video_
 
 # Example usage
 video_title = text_quote
-video_description = text_quote
+video_description = "https://amzn.to/4cv2MXh " +  text_quote
 video_file_path = f"{output_dir}/{FINAL_VIDEO}"
 
 response = upload_video_to_facebook(video_file_path, PAGE_ID, PAGE_ACCESS_TOKEN, video_title, video_description)

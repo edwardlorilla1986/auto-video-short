@@ -150,30 +150,27 @@ def upload_video_to_facebook(video_file_path, page_id, page_access_token, video_
             "file_size": os.path.getsize(video_file_path)
         }
         init_response = requests.post(init_url, data=init_params).json()
-        print("Init response:", init_response)
-
         if 'upload_session_id' not in init_response:
             raise ValueError(f"Failed to initiate upload: {init_response}")
-
+        
         upload_session_id = init_response['upload_session_id']
         video_id = init_response['video_id']
 
         # Upload the video file
         with open(video_file_path, 'rb') as video_file:
-            video_data = video_file.read()
-        upload_url = f"https://graph-video.facebook.com/v20.0/{page_id}/videos"
-        upload_params = {
-            "upload_phase": "transfer",
-            "access_token": page_access_token,
-            "upload_session_id": upload_session_id,
-            "start_offset": 0,
-            "video_file_chunk": video_data
-        }
-        upload_response = requests.post(upload_url, files={"video_file_chunk": video_data}, data=upload_params).json()
-        print("Upload response:", upload_response)
-
-        if 'start_offset' not in upload_response or upload_response['start_offset'] != '0':
-            raise ValueError(f"Failed to upload video: {upload_response}")
+            while True:
+                video_data = video_file.read(1024 * 1024 * 4)  # Read 4MB chunks
+                if not video_data:
+                    break
+                upload_params = {
+                    "upload_phase": "transfer",
+                    "access_token": page_access_token,
+                    "upload_session_id": upload_session_id,
+                    "start_offset": init_response['start_offset'],
+                    "video_file_chunk": video_data
+                }
+                upload_response = requests.post(init_url, files={"video_file_chunk": video_data}, data=upload_params).json()
+                init_response['start_offset'] = upload_response['start_offset']
 
         # Finish the upload
         finish_url = f"https://graph-video.facebook.com/v20.0/{page_id}/videos"
@@ -185,7 +182,6 @@ def upload_video_to_facebook(video_file_path, page_id, page_access_token, video_
             "description": video_description
         }
         finish_response = requests.post(finish_url, data=finish_params).json()
-        print("Finish response:", finish_response)
 
         return finish_response
     except Exception as e:

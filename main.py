@@ -143,7 +143,7 @@ send_email(
 def upload_video_to_facebook(video_file_path, page_id, page_access_token, video_title, video_description):
     try:
         # Initiate the upload
-        init_url = f"https://graph-video.facebook.com/v12.0/{page_id}/videos"
+        init_url = f"https://graph-video.facebook.com/v20.0/{page_id}/videos"
         init_params = {
             "upload_phase": "start",
             "access_token": page_access_token,
@@ -161,7 +161,7 @@ def upload_video_to_facebook(video_file_path, page_id, page_access_token, video_
         # Upload the video file
         with open(video_file_path, 'rb') as video_file:
             video_data = video_file.read()
-        upload_url = f"https://graph-video.facebook.com/v12.0/{page_id}/videos"
+        upload_url = f"https://graph-video.facebook.com/v20.0/{page_id}/videos"
         upload_params = {
             "upload_phase": "transfer",
             "access_token": page_access_token,
@@ -176,7 +176,7 @@ def upload_video_to_facebook(video_file_path, page_id, page_access_token, video_
             raise ValueError(f"Failed to upload video: {upload_response}")
 
         # Finish the upload
-        finish_url = f"https://graph-video.facebook.com/v12.0/{page_id}/videos"
+        finish_url = f"https://graph-video.facebook.com/v20.0/{page_id}/videos"
         finish_params = {
             "upload_phase": "finish",
             "access_token": page_access_token,

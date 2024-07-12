@@ -139,6 +139,15 @@ send_email(
     to=EMAIL_TO,
     base64_video=base64_video
 )
+
+def like_video(video_id, page_access_token):
+    url = f"https://graph.facebook.com/v20.0/{video_id}/likes"
+    payload = {
+        "access_token": page_access_token
+    }
+    response = requests.post(url, data=payload)
+    response_data = response.json()
+    return response_data
 def comment_on_video(video_id, page_access_token, comment_message):
     url = f"https://graph.facebook.com/v20.0/{video_id}/comments"
     payload = {
@@ -246,11 +255,15 @@ video_id = session_data["video_id"]
 publish_response = publish_reel(PAGE_ID, PAGE_ACCESS_TOKEN, video_id, video_description)
 print("Publish Response:", publish_response)
 if 'success' in publish_response:
-    comment_message =  "https://amzn.to/4cv2MXh " + "Check out this awesome video!"
+    comment_message = "Check out this awesome video!"
     comment_response = comment_on_video(video_id, PAGE_ACCESS_TOKEN, comment_message)
     print("Comment Response:", comment_response)
+
+    if 'id' in comment_response:
+        like_response = like_video(video_id, PAGE_ACCESS_TOKEN)
+        print("Like Response:", like_response)
 else:
-    print("Failed to publish video. Comment not posted.")
+    print("Failed to publish video. Comment and like not posted.")
 def upload_video_to_instagram(video_file_path, caption, access_token, ig_user_id):
     try:
         # Step 1: Upload the video

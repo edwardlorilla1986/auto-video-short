@@ -143,7 +143,7 @@ send_email(
 def upload_video_to_facebook(video_file_path, page_id, page_access_token, video_title, video_description):
     try:
         # Initiate the upload
-        init_url = f"https://graph-video.facebook.com/v20.0/{page_id}/video_reels"
+        init_url = f"https://graph-video.facebook.com/v20.0/{page_id}/videos"
         init_params = {
             "upload_phase": "start",
             "access_token": page_access_token,
@@ -173,7 +173,7 @@ def upload_video_to_facebook(video_file_path, page_id, page_access_token, video_
                 init_response['start_offset'] = upload_response['start_offset']
 
         # Finish the upload
-        finish_url = f"https://graph-video.facebook.com/v20.0/{page_id}/video_reels"
+        finish_url = f"https://graph-video.facebook.com/v20.0/{page_id}/videos"
         finish_params = {
             "upload_phase": "finish",
             "access_token": page_access_token,

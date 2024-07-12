@@ -205,10 +205,8 @@ except Exception as e:
     print('Failed to upload video as a reel on Facebook.')
     print('Error:', e)
 
-
 def upload_video_to_instagram(video_file_path, caption, access_token, ig_user_id):
     try:
-        # Step 1: Upload the video
         upload_url = f"https://graph.facebook.com/v15.0/{ig_user_id}/media"
         video_params = {
             'access_token': access_token,
@@ -223,7 +221,6 @@ def upload_video_to_instagram(video_file_path, caption, access_token, ig_user_id
 
         creation_id = upload_response['id']
 
-        # Step 2: Publish the video
         publish_url = f"https://graph.facebook.com/v15.0/{ig_user_id}/media_publish"
         publish_params = {
             'access_token': access_token,

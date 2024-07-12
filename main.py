@@ -174,7 +174,7 @@ def upload_video_in_chunks(upload_url, video_file_path, page_access_token):
 
             start_offset = int(upload_response['start_offset'])
 
-def check_upload_status(page_id, video_id, page_access_token):
+def check_upload_status(video_id, page_access_token):
     status_url = f"https://graph.facebook.com/v20.0/{video_id}?fields=status&access_token={page_access_token}"
     status_response = requests.get(status_url).json()
     if 'status' in status_response:
@@ -183,8 +183,8 @@ def check_upload_status(page_id, video_id, page_access_token):
         raise Exception(f"Failed to check upload status: {status_response}")
 
 def finalize_upload_session(page_id, video_id, page_access_token, caption):
-    status = check_upload_status(page_id, video_id, page_access_token)
-    if status.get('video_status') == 'processing' and status['processing_phase']['status'] == 'complete':
+    status = check_upload_status(video_id, page_access_token)
+    if status.get('video_status') == 'ready':
         finish_url = f"https://graph.facebook.com/v20.0/{page_id}/video_reels"
         finish_params = {
             'access_token': page_access_token,
@@ -199,8 +199,10 @@ def finalize_upload_session(page_id, video_id, page_access_token, caption):
             return finish_response
         else:
             raise Exception(f"Failed to finalize upload: {finish_response}")
+    elif status.get('video_status') == 'processing':
+        print("Video is still processing. Please check back later.")
     else:
-        raise Exception(f"Video processing not complete: {status}")
+        raise Exception(f"Unexpected video status: {status}")
 
 # Example usage
 video_title = text_quote

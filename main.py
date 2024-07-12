@@ -150,6 +150,7 @@ def initialize_upload_session(page_id, page_access_token):
     if 'video_id' in init_response and 'upload_url' in init_response:
         return init_response['video_id'], init_response['upload_url']
     else:
+        print(f"Failed to initiate upload: {init_response}")
         raise Exception(f"Failed to initiate upload: {init_response}")
 
 def upload_video_in_chunks(upload_url, video_file_path, page_access_token):
@@ -170,6 +171,7 @@ def upload_video_in_chunks(upload_url, video_file_path, page_access_token):
             upload_response = response.json()
 
             if 'start_offset' not in upload_response:
+                print(f"Error during upload: {upload_response}")
                 raise Exception(f"Error during upload: {upload_response}")
 
             start_offset = int(upload_response['start_offset'])
@@ -178,6 +180,7 @@ def check_upload_status(video_id, page_access_token):
     status_url = f"https://graph.facebook.com/v20.0/{video_id}?fields=status&access_token={page_access_token}"
     status_response = requests.get(status_url).json()
     if 'status' in status_response:
+        status_response['status']
         return status_response['status']
     else:
         raise Exception(f"Failed to check upload status: {status_response}")
@@ -196,6 +199,7 @@ def finalize_upload_session(page_id, video_id, page_access_token, caption):
         }
         finish_response = requests.post(finish_url, data=finish_params).json()
         if 'success' in finish_response and finish_response['success']:
+            print(finish_response)
             return finish_response
         else:
             raise Exception(f"Failed to finalize upload: {finish_response}")

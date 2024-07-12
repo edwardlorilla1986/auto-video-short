@@ -140,48 +140,55 @@ send_email(
     base64_video=base64_video
 )
 
-def upload_video_to_facebook(video_file_path, page_id, page_access_token, video_title, video_description):
+def upload_video_to_facebook_reel(video_file_path, caption, page_id, page_access_token):
     try:
-        # Initiate the upload
-        init_url = f"https://graph-video.facebook.com/v20.0/{page_id}/videos"
+        # Step 1: Upload the video in chunks
+        with open(video_file_path, 'rb') as video_file:
+            video_data = video_file.read()
+
+        # Initialize the upload
+        init_url = f"https://graph-video.facebook.com/v20.0/{page_id}/video_reels"
         init_params = {
-            "upload_phase": "start",
-            "access_token": page_access_token,
-            "file_size": os.path.getsize(video_file_path)
+            'upload_phase': 'start',
+            'access_token': page_access_token,
+            'file_size': len(video_data)
         }
         init_response = requests.post(init_url, data=init_params).json()
         if 'upload_session_id' not in init_response:
             raise ValueError(f"Failed to initiate upload: {init_response}")
-        
+
         upload_session_id = init_response['upload_session_id']
-        video_id = init_response['video_id']
 
         # Upload the video file
-        with open(video_file_path, 'rb') as video_file:
-            while True:
-                video_data = video_file.read(1024 * 1024 * 4)  # Read 4MB chunks
-                if not video_data:
-                    break
-                upload_params = {
-                    "upload_phase": "transfer",
-                    "access_token": page_access_token,
-                    "upload_session_id": upload_session_id,
-                    "start_offset": init_response['start_offset'],
-                    "video_file_chunk": video_data
-                }
-                upload_response = requests.post(init_url, files={"video_file_chunk": video_data}, data=upload_params).json()
-                init_response['start_offset'] = upload_response['start_offset']
+        start_offset = 0
+        chunk_size = 1024 * 1024 * 4  # 4MB chunks
+        while start_offset < len(video_data):
+            end_offset = min(start_offset + chunk_size, len(video_data))
+            video_chunk = video_data[start_offset:end_offset]
+
+            upload_params = {
+                'upload_phase': 'transfer',
+                'access_token': page_access_token,
+                'upload_session_id': upload_session_id,
+                'start_offset': start_offset,
+                'video_file_chunk': base64.b64encode(video_chunk).decode('utf-8')
+            }
+
+            upload_response = requests.post(init_url, data=upload_params).json()
+            if 'start_offset' not in upload_response:
+                raise ValueError(f"Error during upload: {upload_response}")
+
+            start_offset = int(upload_response['start_offset'])
 
         # Finish the upload
-        finish_url = f"https://graph-video.facebook.com/v20.0/{page_id}/videos"
         finish_params = {
-            "upload_phase": "finish",
-            "access_token": page_access_token,
-            "upload_session_id": upload_session_id,
-            "title": video_title,
-            "description": video_description
+            'upload_phase': 'finish',
+            'access_token': page_access_token,
+            'upload_session_id': upload_session_id,
+            'title': caption,
+            'description': caption
         }
-        finish_response = requests.post(finish_url, data=finish_params).json()
+        finish_response = requests.post(init_url, data=finish_params).json()
 
         return finish_response
     except Exception as e:
@@ -193,7 +200,7 @@ video_title = text_quote
 video_description = "https://amzn.to/4cv2MXh " +  text_quote
 video_file_path = f"{output_dir}/{FINAL_VIDEO}"
 
-response = upload_video_to_facebook(video_file_path, PAGE_ID, PAGE_ACCESS_TOKEN, video_title, video_description)
+response = upload_video_to_facebook_reel(video_file_path, video_description, PAGE_ID, PAGE_ACCESS_TOKEN)
 
 if 'success' in response:
     print('Video uploaded successfully!')

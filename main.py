@@ -45,17 +45,29 @@ fig_font = Figlet(font="slant", justify="left")
 print(fig_font.renderText("Auto Video Short!!!"))
 
 # Get a quote and save it to a variable
-text_quote = get_quote()
-make_audio(text_quote)
+try:
+    text_quote = get_quote()
+    make_audio(text_quote)
+except Exception as e:
+    print(f"Error fetching quote or creating audio: {e}")
+    exit(1)
 
 # Save the quote to a text file
 quote_file_path = os.path.join(output_dir, "quote.txt")
-with open(quote_file_path, "w") as file:
-    file.write(shorten(text_quote, width=90, placeholder="..."))
-print(f"Quote saved to {quote_file_path}")
+try:
+    with open(quote_file_path, "w") as file:
+        file.write(shorten(text_quote, width=90, placeholder="..."))
+    print(f"Quote saved to {quote_file_path}")
+except Exception as e:
+    print(f"Error saving quote to file: {e}")
+    exit(1)
 
 # Download the video clip from an API
-download_video()
+try:
+    download_video()
+except Exception as e:
+    print(f"Error downloading video: {e}")
+    exit(1)
 
 # Verify that the necessary files exist
 audio_path = f"{output_dir}/{AUDIO_NAME}"
@@ -76,7 +88,11 @@ text_quote = fill(text_quote, width=30, fix_sentence_endings=True)
 resolution = (1080, 1920)
 
 # Load the audio clip
-audio_clip = AudioFileClip(audio_path)
+try:
+    audio_clip = AudioFileClip(audio_path)
+except Exception as e:
+    print(f"Error loading audio clip: {e}")
+    exit(1)
 
 try:
     # Load the video clip, set the audio, loop the video, and resize
@@ -101,37 +117,44 @@ except Exception as e:
 
 # Convert video to base64
 def video_to_base64(video_path):
-    with open(video_path, "rb") as video_file:
-        base64_encoded_video = base64.b64encode(video_file.read()).decode('utf-8')
-    return base64_encoded_video
+    try:
+        with open(video_path, "rb") as video_file:
+            base64_encoded_video = base64.b64encode(video_file.read()).decode('utf-8')
+        return base64_encoded_video
+    except Exception as e:
+        print(f"Error converting video to base64: {e}")
+        return None
 
 base64_video = video_to_base64(final_video_path)
 
 def send_email(subject, body, to, base64_video):
-    msg = MIMEMultipart()
-    msg['From'] = EMAIL_USER
-    msg['To'] = to
-    msg['Subject'] = subject
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = EMAIL_USER
+        msg['To'] = to
+        msg['Subject'] = subject
 
-    html = f"""
-    <div class="video-container">
-            <video controls>
-                <source src="data:video/mp4;base64,{base64_video}" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-        </div>
-        <p>Quote: {text_quote}</p>
-    """
+        html = f"""
+        <div class="video-container">
+                <video controls>
+                    <source src="data:video/mp4;base64,{base64_video}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <p>Quote: {text_quote}</p>
+        """
 
-    msg.attach(MIMEText(html, 'html'))
+        msg.attach(MIMEText(html, 'html'))
 
-    server = smtplib.SMTP('smtp.gmail.com', 587)
-    server.starttls()
-    server.login(EMAIL_USER, EMAIL_PASS)
-    text = msg.as_string()
-    server.sendmail(EMAIL_USER, to, text)
-    server.quit()
-    print(f"Email sent to {to} with embedded video")
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(EMAIL_USER, EMAIL_PASS)
+        text = msg.as_string()
+        server.sendmail(EMAIL_USER, to, text)
+        server.quit()
+        print(f"Email sent to {to} with embedded video")
+    except Exception as e:
+        print(f"Error sending email: {e}")
 
 send_email(
     subject=text_quote,
@@ -141,22 +164,32 @@ send_email(
 )
 
 def like_video(video_id, page_access_token):
-    url = f"https://graph.facebook.com/v20.0/{video_id}/likes"
-    payload = {
-        "access_token": page_access_token
-    }
-    response = requests.post(url, data=payload)
-    response_data = response.json()
-    return response_data
+    try:
+        url = f"https://graph.facebook.com/v20.0/{video_id}/likes"
+        payload = {
+            "access_token": page_access_token
+        }
+        response = requests.post(url, data=payload)
+        response_data = response.json()
+        return response_data
+    except Exception as e:
+        print(f"Error liking video: {e}")
+        return None
+
 def comment_on_video(video_id, page_access_token, comment_message):
-    url = f"https://graph.facebook.com/v20.0/{video_id}/comments"
-    payload = {
-        "access_token": page_access_token,
-        "message": comment_message
-    }
-    response = requests.post(url, data=payload)
-    response_data = response.json()
-    return response_data
+    try:
+        url = f"https://graph.facebook.com/v20.0/{video_id}/comments"
+        payload = {
+            "access_token": page_access_token,
+            "message": comment_message
+        }
+        response = requests.post(url, data=payload)
+        response_data = response.json()
+        return response_data
+    except Exception as e:
+        print(f"Error commenting on video: {e}")
+        return None
+
 def upload_video_to_facebook(video_file_path, page_id, page_access_token, video_title, video_description):
     try:
         # Initiate the upload
@@ -206,64 +239,82 @@ def upload_video_to_facebook(video_file_path, page_id, page_access_token, video_
         return {"error": str(e)}
 
 def initialize_upload_session(page_id, page_access_token):
-    url = f"https://graph.facebook.com/v20.0/{page_id}/video_reels"
-    headers = {
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "upload_phase": "start",
-        "access_token": page_access_token
-    }
-    response = requests.post(url, headers=headers, json=payload)
-    response_data = response.json()
-    return response_data
+    try:
+        url = f"https://graph.facebook.com/v20.0/{page_id}/video_reels"
+        headers = {
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "upload_phase": "start",
+            "access_token": page_access_token
+        }
+        response = requests.post(url, headers=headers, json=payload)
+        response_data = response.json()
+        return response_data
+    except Exception as e:
+        print(f"Error initializing upload session: {e}")
+        return None
 
 def upload_video(video_file_path, upload_url, page_access_token):
-    file_size = os.path.getsize(video_file_path)
-    headers = {
-        "Authorization": f"OAuth {page_access_token}",
-        "offset": "0",
-        "file_size": str(file_size)
-    }
-    with open(video_file_path, 'rb') as video_file:
-        response = requests.post(upload_url, headers=headers, data=video_file)
-    response_data = response.json()
-    return response_data
+    try:
+        file_size = os.path.getsize(video_file_path)
+        headers = {
+            "Authorization": f"OAuth {page_access_token}",
+            "offset": "0",
+            "file_size": str(file_size)
+        }
+        with open(video_file_path, 'rb') as video_file:
+            response = requests.post(upload_url, headers=headers, data=video_file)
+        response_data = response.json()
+        return response_data
+    except Exception as e:
+        print(f"Error uploading video: {e}")
+        return None
 
 def publish_reel(page_id, page_access_token, video_id, description):
-    url = f"https://graph.facebook.com/v20.0/{page_id}/video_reels"
-    payload = {
-        "access_token": page_access_token,
-        "video_id": video_id,
-        "upload_phase": "finish",
-        "video_state": "PUBLISHED",
-        "description": description
-    }
-    response = requests.post(url, data=payload)
-    response_data = response.json()
-    return response_data
+    try:
+        url = f"https://graph.facebook.com/v20.0/{page_id}/video_reels"
+        payload = {
+            "access_token": page_access_token,
+            "video_id": video_id,
+            "upload_phase": "finish",
+            "video_state": "PUBLISHED",
+            "description": description
+        }
+        response = requests.post(url, data=payload)
+        response_data = response.json()
+        return response_data
+    except Exception as e:
+        print(f"Error publishing reel: {e}")
+        return None
 
 video_title = text_quote
 video_description = "https://amzn.to/4cv2MXh " +  text_quote
 video_file_path = f"{output_dir}/{FINAL_VIDEO}"
+
 session_data = initialize_upload_session(PAGE_ID, PAGE_ACCESS_TOKEN)
 print("Session Data:", session_data)
-upload_url = session_data["upload_url"]
-upload_response = upload_video(video_file_path, upload_url, PAGE_ACCESS_TOKEN)
-print("Upload Response:", upload_response)
-video_id = session_data["video_id"]
-publish_response = publish_reel(PAGE_ID, PAGE_ACCESS_TOKEN, video_id, video_description)
-print("Publish Response:", publish_response)
-if 'success' in publish_response:
-    comment_message = "https://amzn.to/4cv2MXh" +"\n https://paxorex.blogspot.com/ Check out this awesome video!"
-    comment_response = comment_on_video(video_id, PAGE_ACCESS_TOKEN, comment_message)
-    print("Comment Response:", comment_response)
+if session_data:
+    upload_url = session_data["upload_url"]
+    upload_response = upload_video(video_file_path, upload_url, PAGE_ACCESS_TOKEN)
+    print("Upload Response:", upload_response)
+    if upload_response:
+        video_id = session_data["video_id"]
+        publish_response = publish_reel(PAGE_ID, PAGE_ACCESS_TOKEN, video_id, video_description)
+        print("Publish Response:", publish_response)
+        if 'success' in publish_response:
+            comment_message = "https://amzn.to/4cv2MXh" +"\n https://paxorex.blogspot.com/ Check out this awesome video!"
+            comment_response = comment_on_video(video_id, PAGE_ACCESS_TOKEN, comment_message)
+            print("Comment Response:", comment_response)
 
-    if 'id' in comment_response:
-        like_response = like_video(video_id, PAGE_ACCESS_TOKEN)
-        print("Like Response:", like_response)
+            if 'id' in comment_response:
+                like_response = like_video(video_id, PAGE_ACCESS_TOKEN)
+                print("Like Response:", like_response)
+        else:
+            print("Failed to publish video. Comment and like not posted.")
 else:
-    print("Failed to publish video. Comment and like not posted.")
+    print("Failed to initialize upload session.")
+
 def upload_video_to_instagram(video_file_path, caption, access_token, ig_user_id):
     try:
         # Step 1: Upload the video
@@ -306,19 +357,25 @@ else:
     print('Response:', ig_response)
 
 def get_authenticated_service():
-    credentials = Credentials(
-        None,
-        refresh_token=REFRESH_TOKEN,
-        token_uri='https://oauth2.googleapis.com/token',
-        client_id=CLIENT_ID,
-        client_secret=CLIENT_SECRET
-    )
-    credentials.refresh(Request())
-    return build('youtube', 'v3', credentials=credentials)
+    try:
+        credentials = Credentials(
+            None,
+            refresh_token=REFRESH_TOKEN,
+            token_uri='https://oauth2.googleapis.com/token',
+            client_id=CLIENT_ID,
+            client_secret=CLIENT_SECRET
+        )
+        credentials.refresh(Request())
+        return build('youtube', 'v3', credentials=credentials)
+    except Exception as e:
+        print(f"Error authenticating YouTube service: {e}")
+        return None
 
 def upload_video_to_youtube(video_file_path, title, description, tags, category_id, privacy_status):
     try:
         youtube = get_authenticated_service()
+        if not youtube:
+            raise ValueError("Failed to get YouTube authenticated service")
 
         body = {
             'snippet': {

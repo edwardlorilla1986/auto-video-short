@@ -1,11 +1,21 @@
 import os
+import base64
 import requests
-import time
+import smtplib
 from os import environ
 from dotenv import load_dotenv
 from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip, ColorClip
 from textwrap import fill, shorten
 from pyfiglet import Figlet
+from videoProcess.Quote import get_quote
+from videoProcess.SoundCreate import make_audio
+from videoProcess.VideoDownload import download_video
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from google.auth.transport.requests import Request
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+from google.oauth2.credentials import Credentials
 
 # Load environment variables from .env file if running locally
 load_dotenv(".env")
@@ -17,8 +27,13 @@ REFRESH_TOKEN = environ.get("REFRESH_TOKEN")
 AUDIO_NAME = environ.get("AUDIO_NAME", "audio.mp3")
 VIDEO_NAME = environ.get("VIDEO_NAME", "video.mp4")
 FINAL_VIDEO = environ.get("FINAL_VIDEO", "final_video.mp4")
+EMAIL_USER = environ.get("EMAIL_USER")
+EMAIL_PASS = environ.get("EMAIL_PASS")
+EMAIL_TO = environ.get("EMAIL_TO")
 PAGE_ID = environ.get("PAGE_ID")
 PAGE_ACCESS_TOKEN = environ.get("PAGE_ACCESS_TOKEN")
+IG_USER_ID = environ.get("IG_USER_ID")
+IG_ACCESS_TOKEN = environ.get("IG_ACCESS_TOKEN")
 
 # Ensure output directory exists
 output_dir = "output"
@@ -29,19 +44,7 @@ if not os.path.exists(output_dir):
 fig_font = Figlet(font="slant", justify="left")
 print(fig_font.renderText("Auto Video Short!!!"))
 
-# Prepare the quote text for the video
-def get_quote():
-    # Placeholder function to get a quote
-    return "This is a sample quote."
-
-def make_audio(text_quote):
-    # Placeholder function to create audio from text
-    pass
-
-def download_video():
-    # Placeholder function to download a video
-    pass
-
+# Get a quote and save it to a variable
 text_quote = get_quote()
 make_audio(text_quote)
 
@@ -96,89 +99,204 @@ try:
 except Exception as e:
     print(f"Error processing video: {e}")
 
-def initialize_upload_session(page_id, page_access_token):
-    init_url = f"https://graph.facebook.com/v20.0/{page_id}/video_reels"
-    init_params = {
-        'upload_phase': 'start',
-        'access_token': page_access_token
-    }
-    init_response = requests.post(init_url, json=init_params).json()
-    if 'video_id' in init_response and 'upload_url' in init_response:
-        return init_response['video_id'], init_response['upload_url']
-    else:
-        raise Exception(f"Failed to initiate upload: {init_response}")
+# Convert video to base64
+def video_to_base64(video_path):
+    with open(video_path, "rb") as video_file:
+        base64_encoded_video = base64.b64encode(video_file.read()).decode('utf-8')
+    return base64_encoded_video
 
-def upload_video_in_chunks(upload_url, video_file_path, page_access_token):
-    chunk_size = 1024 * 1024 * 4  # 4MB chunks
-    file_size = os.path.getsize(video_file_path)
-    
-    start_offset = 0
-    while start_offset < file_size:
+base64_video = video_to_base64(final_video_path)
+
+def send_email(subject, body, to, base64_video):
+    msg = MIMEMultipart()
+    msg['From'] = EMAIL_USER
+    msg['To'] = to
+    msg['Subject'] = subject
+
+    html = f"""
+    <div class="video-container">
+            <video controls>
+                <source src="data:video/mp4;base64,{base64_video}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        <p>Quote: {text_quote}</p>
+    """
+
+    msg.attach(MIMEText(html, 'html'))
+
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(EMAIL_USER, EMAIL_PASS)
+    text = msg.as_string()
+    server.sendmail(EMAIL_USER, to, text)
+    server.quit()
+    print(f"Email sent to {to} with embedded video")
+
+send_email(
+    subject=text_quote,
+    body="Please find the embedded video below.",
+    to=EMAIL_TO,
+    base64_video=base64_video
+)
+
+def upload_video_to_facebook(video_file_path, page_id, page_access_token, video_title, video_description):
+    try:
+        # Initiate the upload
+        init_url = f"https://graph-video.facebook.com/v20.0/{page_id}/videos"
+        init_params = {
+            "upload_phase": "start",
+            "access_token": page_access_token,
+            "file_size": os.path.getsize(video_file_path)
+        }
+        init_response = requests.post(init_url, data=init_params).json()
+        if 'upload_session_id' not in init_response:
+            raise ValueError(f"Failed to initiate upload: {init_response}")
+        
+        upload_session_id = init_response['upload_session_id']
+        video_id = init_response['video_id']
+
+        # Upload the video file
         with open(video_file_path, 'rb') as video_file:
-            video_file.seek(start_offset)
-            video_chunk = video_file.read(chunk_size)
-            headers = {
-                'Authorization': f'OAuth {page_access_token}',
-                'offset': str(start_offset),
-                'file_size': str(file_size),
-                'Content-Type': 'application/octet-stream'
-            }
-            response = requests.post(upload_url, headers=headers, data=video_chunk)
-            upload_response = response.json()
+            while True:
+                video_data = video_file.read(1024 * 1024 * 4)  # Read 4MB chunks
+                if not video_data:
+                    break
+                upload_params = {
+                    "upload_phase": "transfer",
+                    "access_token": page_access_token,
+                    "upload_session_id": upload_session_id,
+                    "start_offset": init_response['start_offset'],
+                    "video_file_chunk": video_data
+                }
+                upload_response = requests.post(init_url, files={"video_file_chunk": video_data}, data=upload_params).json()
+                init_response['start_offset'] = upload_response['start_offset']
 
-            if 'start_offset' not in upload_response:
-                if 'debug_info' in upload_response and upload_response['debug_info'].get('type') == 'PartialRequestError':
-                    print(f"Partial request error: {upload_response['debug_info']['message']}. Retrying...")
-                    continue
-                else:
-                    raise Exception(f"Error during upload: {upload_response}")
+        # Finish the upload
+        finish_url = f"https://graph-video.facebook.com/v20.0/{page_id}/videos"
+        finish_params = {
+            "upload_phase": "finish",
+            "access_token": page_access_token,
+            "upload_session_id": upload_session_id,
+            "title": video_title,
+            "description": video_description
+        }
+        finish_response = requests.post(finish_url, data=finish_params).json()
 
-            start_offset = int(upload_response['start_offset'])
-
-def check_upload_status(video_id, page_access_token):
-    status_url = f"https://graph.facebook.com/v20.0/{video_id}?fields=status&access_token={page_access_token}"
-    status_response = requests.get(status_url).json()
-    if 'status' in status_response:
-        return status_response['status']
-    else:
-        raise Exception(f"Failed to check upload status: {status_response}")
-
-def finalize_upload_session(page_id, video_id, page_access_token, caption):
-    while True:
-        status = check_upload_status(video_id, page_access_token)
-        video_status = status.get('video_status')
-        if video_status == 'ready':
-            finish_url = f"https://graph.facebook.com/v20.0/{page_id}/video_reels"
-            finish_params = {
-                'access_token': page_access_token,
-                'upload_phase': 'finish',
-                'video_id': video_id,
-                'title': caption,
-                'description': caption,
-                'video_state': 'PUBLISHED'
-            }
-            finish_response = requests.post(finish_url, data=finish_params).json()
-            if 'success' in finish_response and finish_response['success']:
-                return finish_response
-            else:
-                raise Exception(f"Failed to finalize upload: {finish_response}")
-        elif video_status == 'processing':
-            print("Video is still processing. Checking again in 10 seconds...")
-            time.sleep(10)
-        else:
-            raise Exception(f"Unexpected video status: {status}")
+        return finish_response
+    except Exception as e:
+        print(f"Error uploading video: {e}")
+        return {"error": str(e)}
 
 # Example usage
 video_title = text_quote
-video_description = text_quote
+video_description = "https://amzn.to/4cv2MXh " +  text_quote
 video_file_path = f"{output_dir}/{FINAL_VIDEO}"
 
-try:
-    video_id, upload_url = initialize_upload_session(PAGE_ID, PAGE_ACCESS_TOKEN)
-    upload_video_in_chunks(upload_url, video_file_path, PAGE_ACCESS_TOKEN)
-    response = finalize_upload_session(PAGE_ID, video_id, PAGE_ACCESS_TOKEN, video_description)
-    print('Video uploaded successfully as a reel on Facebook!')
+response = upload_video_to_facebook(video_file_path, PAGE_ID, PAGE_ACCESS_TOKEN, video_title, video_description)
+
+if 'success' in response:
+    print('Video uploaded successfully!')
     print('Response:', response)
-except Exception as e:
-    print('Failed to upload video as a reel on Facebook.')
-    print('Error:', e)
+else:
+    print('Failed to upload video.')
+    print('Response:', response)
+
+def upload_video_to_instagram(video_file_path, caption, access_token, ig_user_id):
+    try:
+        # Step 1: Upload the video
+        upload_url = f"https://graph.facebook.com/v15.0/{ig_user_id}/media"
+        video_params = {
+            'access_token': access_token,
+            'media_type': 'VIDEO',
+            'video_url': video_file_path,
+            'caption': caption
+        }
+
+        upload_response = requests.post(upload_url, data=video_params).json()
+        if 'id' not in upload_response:
+            raise ValueError(f"Error uploading video: {upload_response}")
+
+        creation_id = upload_response['id']
+
+        # Step 2: Publish the video
+        publish_url = f"https://graph.facebook.com/v15.0/{ig_user_id}/media_publish"
+        publish_params = {
+            'access_token': access_token,
+            'creation_id': creation_id
+        }
+
+        publish_response = requests.post(publish_url, data=publish_params).json()
+        return publish_response
+    except Exception as e:
+        print(f"Error uploading video to Instagram: {e}")
+        return {"error": str(e)}
+
+# Example usage for Instagram
+ig_caption = text_quote
+ig_response = upload_video_to_instagram(video_file_path, ig_caption, IG_ACCESS_TOKEN, IG_USER_ID)
+
+if 'id' in ig_response:
+    print('Video uploaded and published to Instagram successfully!')
+    print('Response:', ig_response)
+else:
+    print('Failed to upload and publish video to Instagram.')
+    print('Response:', ig_response)
+
+def get_authenticated_service():
+    credentials = Credentials(
+        None,
+        refresh_token=REFRESH_TOKEN,
+        token_uri='https://oauth2.googleapis.com/token',
+        client_id=CLIENT_ID,
+        client_secret=CLIENT_SECRET
+    )
+    credentials.refresh(Request())
+    return build('youtube', 'v3', credentials=credentials)
+
+def upload_video_to_youtube(video_file_path, title, description, tags, category_id, privacy_status):
+    try:
+        youtube = get_authenticated_service()
+
+        body = {
+            'snippet': {
+                'title': title,
+                'description': description,
+                'tags': tags,
+                'categoryId': category_id
+            },
+            'status': {
+                'privacyStatus': privacy_status
+            }
+        }
+
+        media = MediaFileUpload(video_file_path, chunksize=-1, resumable=True)
+
+        request = youtube.videos().insert(
+            part="snippet,status",
+            body=body,
+            media_body=media
+        )
+
+        response = request.execute()
+        print(f"Video uploaded to YouTube: {response['id']}")
+        return response
+    except Exception as e:
+        print(f"Error uploading video to YouTube: {e}")
+        return {"error": str(e)}
+
+# Example usage for YouTube
+youtube_title = shorten(text_quote, width=90, placeholder="...")
+youtube_description = "https://amzn.to/4cv2MXh " +  text_quote
+youtube_tags = ['cats', 'facts']
+youtube_category_id = '22'  # YouTube category ID
+youtube_privacy_status = 'public'
+
+response = upload_video_to_youtube(video_file_path, youtube_title, youtube_description, youtube_tags, youtube_category_id, youtube_privacy_status)
+
+if 'id' in response:
+    print('Video uploaded to YouTube successfully!')
+    print('Response:', response)
+else:
+    print('Failed to upload video to YouTube.')
+    print('Response:', response)

@@ -158,22 +158,17 @@ def upload_video_in_chunks(upload_url, video_file_path, page_access_token):
     
     with open(video_file_path, 'rb') as video_file:
         start_offset = 0
-        while True:
+        while start_offset < file_size:
             video_chunk = video_file.read(chunk_size)
-            if not video_chunk:
-                break
-
             headers = {
                 'Authorization': f'OAuth {page_access_token}',
                 'offset': str(start_offset),
                 'file_size': str(file_size),
                 'Content-Type': 'application/octet-stream'
             }
-
             upload_response = requests.post(upload_url, headers=headers, data=video_chunk).json()
             if 'start_offset' not in upload_response:
                 raise Exception(f"Error during upload: {upload_response}")
-
             start_offset = int(upload_response['start_offset'])
 
 def finalize_upload_session(page_id, video_id, page_access_token, caption):
@@ -192,9 +187,9 @@ def finalize_upload_session(page_id, video_id, page_access_token, caption):
     else:
         raise Exception(f"Failed to finalize upload: {finish_response}")
 
-
+# Example usage
 video_title = text_quote
-video_description = "https://amzn.to/4cv2MXh " +  text_quote
+video_description = text_quote
 video_file_path = f"{output_dir}/{FINAL_VIDEO}"
 
 try:

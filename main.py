@@ -174,21 +174,33 @@ def upload_video_in_chunks(upload_url, video_file_path, page_access_token):
 
             start_offset = int(upload_response['start_offset'])
 
-def finalize_upload_session(page_id, video_id, page_access_token, caption):
-    finish_url = f"https://graph.facebook.com/v20.0/{page_id}/video_reels"
-    finish_params = {
-        'access_token': page_access_token,
-        'upload_phase': 'finish',
-        'video_id': video_id,
-        'title': caption,
-        'description': caption,
-        'video_state': 'PUBLISHED'
-    }
-    finish_response = requests.post(finish_url, data=finish_params).json()
-    if 'success' in finish_response and finish_response['success']:
-        return finish_response
+def check_upload_status(page_id, video_id, page_access_token):
+    status_url = f"https://graph.facebook.com/v20.0/{video_id}?fields=status&access_token={page_access_token}"
+    status_response = requests.get(status_url).json()
+    if 'status' in status_response:
+        return status_response['status']
     else:
-        raise Exception(f"Failed to finalize upload: {finish_response}")
+        raise Exception(f"Failed to check upload status: {status_response}")
+
+def finalize_upload_session(page_id, video_id, page_access_token, caption):
+    status = check_upload_status(page_id, video_id, page_access_token)
+    if status.get('video_status') == 'processing' and status['processing_phase']['status'] == 'complete':
+        finish_url = f"https://graph.facebook.com/v20.0/{page_id}/video_reels"
+        finish_params = {
+            'access_token': page_access_token,
+            'upload_phase': 'finish',
+            'video_id': video_id,
+            'title': caption,
+            'description': caption,
+            'video_state': 'PUBLISHED'
+        }
+        finish_response = requests.post(finish_url, data=finish_params).json()
+        if 'success' in finish_response and finish_response['success']:
+            return finish_response
+        else:
+            raise Exception(f"Failed to finalize upload: {finish_response}")
+    else:
+        raise Exception(f"Video processing not complete: {status}")
 
 # Example usage
 video_title = text_quote
@@ -207,6 +219,7 @@ except Exception as e:
 
 def upload_video_to_instagram(video_file_path, caption, access_token, ig_user_id):
     try:
+        # Step 1: Upload the video
         upload_url = f"https://graph.facebook.com/v15.0/{ig_user_id}/media"
         video_params = {
             'access_token': access_token,
@@ -221,6 +234,7 @@ def upload_video_to_instagram(video_file_path, caption, access_token, ig_user_id
 
         creation_id = upload_response['id']
 
+        # Step 2: Publish the video
         publish_url = f"https://graph.facebook.com/v15.0/{ig_user_id}/media_publish"
         publish_params = {
             'access_token': access_token,

@@ -166,9 +166,12 @@ def upload_video_in_chunks(upload_url, video_file_path, page_access_token):
                 'file_size': str(file_size),
                 'Content-Type': 'application/octet-stream'
             }
-            upload_response = requests.post(upload_url, headers=headers, data=video_chunk).json()
+            response = requests.post(upload_url, headers=headers, data=video_chunk)
+            upload_response = response.json()
+
             if 'start_offset' not in upload_response:
                 raise Exception(f"Error during upload: {upload_response}")
+
             start_offset = int(upload_response['start_offset'])
 
 def finalize_upload_session(page_id, video_id, page_access_token, caption):

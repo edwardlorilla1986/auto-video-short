@@ -142,45 +142,43 @@ send_email(
 
 def upload_video_to_facebook_reel(video_file_path, caption, page_id, page_access_token):
     try:
-        # Step 1: Upload the video in chunks
-        with open(video_file_path, 'rb') as video_file:
-            video_data = video_file.read()
-
-        # Initialize the upload
-        init_url = f"https://graph-video.facebook.com/v20.0/{page_id}/video_reels"
+        # Step 1: Initialize the upload
+        init_url = f"https://graph-video.facebook.com/v20.0/{page_id}/videos"
         init_params = {
             'upload_phase': 'start',
             'access_token': page_access_token,
-            'file_size': len(video_data)
+            'file_size': os.path.getsize(video_file_path)
         }
         init_response = requests.post(init_url, data=init_params).json()
         if 'upload_session_id' not in init_response:
             raise ValueError(f"Failed to initiate upload: {init_response}")
 
         upload_session_id = init_response['upload_session_id']
+        video_id = init_response['video_id']
 
-        # Upload the video file
-        start_offset = 0
+        # Step 2: Upload the video file in chunks
         chunk_size = 1024 * 1024 * 4  # 4MB chunks
-        while start_offset < len(video_data):
-            end_offset = min(start_offset + chunk_size, len(video_data))
-            video_chunk = video_data[start_offset:end_offset]
+        with open(video_file_path, 'rb') as video_file:
+            start_offset = 0
+            while True:
+                video_chunk = video_file.read(chunk_size)
+                if not video_chunk:
+                    break
 
-            upload_params = {
-                'upload_phase': 'transfer',
-                'access_token': page_access_token,
-                'upload_session_id': upload_session_id,
-                'start_offset': start_offset,
-                'video_file_chunk': base64.b64encode(video_chunk).decode('utf-8')
-            }
+                upload_params = {
+                    'upload_phase': 'transfer',
+                    'access_token': page_access_token,
+                    'upload_session_id': upload_session_id,
+                    'start_offset': start_offset,
+                    'video_file_chunk': video_chunk
+                }
+                upload_response = requests.post(init_url, files={'video_file_chunk': video_chunk}, data=upload_params).json()
+                if 'start_offset' not in upload_response:
+                    raise ValueError(f"Error during upload: {upload_response}")
 
-            upload_response = requests.post(init_url, data=upload_params).json()
-            if 'start_offset' not in upload_response:
-                raise ValueError(f"Error during upload: {upload_response}")
+                start_offset = int(upload_response['start_offset'])
 
-            start_offset = int(upload_response['start_offset'])
-
-        # Finish the upload
+        # Step 3: Finish the upload
         finish_params = {
             'upload_phase': 'finish',
             'access_token': page_access_token,
@@ -194,7 +192,6 @@ def upload_video_to_facebook_reel(video_file_path, caption, page_id, page_access
     except Exception as e:
         print(f"Error uploading video: {e}")
         return {"error": str(e)}
-
 # Example usage
 video_title = text_quote
 video_description = "https://amzn.to/4cv2MXh " +  text_quote

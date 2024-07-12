@@ -7,7 +7,8 @@ load_dotenv(".env")
 
 PAGE_ID = os.getenv("PAGE_ID")
 PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN")
-
+output_dir = "output"
+VIDEO_NAME = environ.get("VIDEO_NAME", "video.mp4")
 def initialize_upload_session(page_id, page_access_token):
     url = f"https://graph.facebook.com/v20.0/{page_id}/video_reels"
     headers = {
@@ -50,7 +51,7 @@ def publish_reel(page_id, page_access_token, video_id, description):
 session_data = initialize_upload_session(PAGE_ID, PAGE_ACCESS_TOKEN)
 print("Session Data:", session_data)
 
-video_file_path = "path_to_your_video.mp4"  # Update this with your video file path
+video_file_path = f"{output_dir}/{VIDEO_NAME}"
 upload_url = session_data["upload_url"]
 upload_response = upload_video(video_file_path, upload_url, PAGE_ACCESS_TOKEN)
 print("Upload Response:", upload_response)

@@ -238,13 +238,6 @@ video_id = session_data["video_id"]
 publish_response = publish_reel(PAGE_ID, PAGE_ACCESS_TOKEN, video_id, video_description)
 print("Publish Response:", publish_response)
 
-if 'success' in response:
-    print('Video uploaded successfully!')
-    print('Response:', response)
-else:
-    print('Failed to upload video.')
-    print('Response:', response)
-
 def upload_video_to_instagram(video_file_path, caption, access_token, ig_user_id):
     try:
         # Step 1: Upload the video

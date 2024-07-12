@@ -255,7 +255,7 @@ video_id = session_data["video_id"]
 publish_response = publish_reel(PAGE_ID, PAGE_ACCESS_TOKEN, video_id, video_description)
 print("Publish Response:", publish_response)
 if 'success' in publish_response:
-    comment_message = https://amzn.to/4cv2MXh +" Check out this awesome video!"
+    comment_message = https://amzn.to/4cv2MXh +"\n https://paxorex.blogspot.com/ Check out this awesome video!"
     comment_response = comment_on_video(video_id, PAGE_ACCESS_TOKEN, comment_message)
     print("Comment Response:", comment_response)
 

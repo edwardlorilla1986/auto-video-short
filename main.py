@@ -294,7 +294,7 @@ video_file_path = f"{output_dir}/{FINAL_VIDEO}"
 
 session_data = initialize_upload_session(PAGE_ID, PAGE_ACCESS_TOKEN)
 print("Session Data:", session_data)
-if session_data:
+if "upload_url" in session_data:
     upload_url = session_data["upload_url"]
     upload_response = upload_video(video_file_path, upload_url, PAGE_ACCESS_TOKEN)
     print("Upload Response:", upload_response)

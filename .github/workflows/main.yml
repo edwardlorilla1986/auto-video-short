@@ -48,26 +48,31 @@ jobs:
     - name: Generate Audio
       run: |
         python -c "
+        import os
         import warnings
-
+        
         # Suppress specific FutureWarning
-        warnings.filterwarnings("ignore", category=FutureWarning, module='bark.generation')
+        warnings.filterwarnings('ignore', category=FutureWarning, module='bark.generation')
+        
         from bark import SAMPLE_RATE, generate_audio, preload_models
         from scipy.io.wavfile import write
-        import os
         
-        # Your existing code to generate audio
+        # Download and load all models
         preload_models()
         
-        text_prompt = "Hello, my name is Suno. And, uh — and I like pizza. [laughs] But I also have other interests such as playing tic tac toe."
+        # Generate audio from text
+        text_prompt = 'Hello, my name is Suno. And, uh — and I like pizza. [laughs] But I also have other interests such as playing tic tac toe.'
         speech_array = generate_audio(text_prompt)
         
-        output_dir = "output"
+        # Ensure the output directory exists
+        output_dir = 'output'
         os.makedirs(output_dir, exist_ok=True)
-        audio_file_path = os.path.join(output_dir, "audio.wav")
+        
+        # Save the generated audio to a file
+        audio_file_path = os.path.join(output_dir, 'audio.wav')
         write(audio_file_path, SAMPLE_RATE, (speech_array * 32767).astype('int16'))
         
-        print(f"Audio has been saved to {audio_file_path}")
+        print(f'Audio has been saved to {audio_file_path}')
         "
 
     - name: Commit output files

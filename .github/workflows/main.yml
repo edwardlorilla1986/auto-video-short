@@ -45,7 +45,38 @@ jobs:
         pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
         pip install -r requirements.txt
 
-  
+    - name: Generate Audio
+      run: |
+        python -c "
+        import os
+        from bark import SAMPLE_RATE, generate_audio, preload_models
+        from scipy.io.wavfile import write
+        
+        # Download and load all models
+        preload_models()
+        
+        # Generate audio from text
+        text_prompt = 'Hello, my name is Suno. And, uh — and I like pizza. [laughs] But I also have other interests such as playing tic tac toe.'
+        speech_array = generate_audio(text_prompt)
+        
+        # Ensure the output directory exists
+        output_dir = 'output'
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Save the generated audio to a file
+        audio_file_path = os.path.join(output_dir, 'audio.wav')
+        write(audio_file_path, SAMPLE_RATE, (speech_array * 32767).astype('int16'))
+        
+        print(f'Audio has been saved to {audio_file_path}')
+        "
+
+    - name: Commit output files
+      run: |
+        git config --global user.name 'github-actions'
+        git config --global user.email 'github-actions@github.com'
+        git add -f output/*
+        git commit -m "Add generated audio files"
+        git push origin Production  
 
     - name: Update ImageMagick policy
       run: |

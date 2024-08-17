@@ -34,6 +34,9 @@ jobs:
     
     - name: Install dependencies
       run: |
+        sudo apt-get clean
+        sudo rm -rf /var/lib/apt/lists/*
+        df -h
         sudo apt-get update
         sudo apt-get install -y imagemagick ghostscript
         python -m pip install --upgrade pip

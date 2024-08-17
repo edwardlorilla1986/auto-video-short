@@ -46,13 +46,7 @@ jobs:
 
 
 
-    - name: Commit output files
-      run: |
-        git config --global user.name 'github-actions'
-        git config --global user.email 'github-actions@github.com'
-        git add -f output/*
-        git commit -m "Add generated audio files"
-        git push origin Production  
+
 
     - name: Update ImageMagick policy
       run: |

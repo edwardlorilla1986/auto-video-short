@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip
 from textwrap import fill
 from PIL import Image
-
+import math
 # Load environment constants
 load_dotenv(".env")
 
@@ -68,8 +68,12 @@ def download_video():
     except Exception as e:
         print(f"Error downloading video: {e}")
 
+def chunk_text(quote, max_words=5):
+    words = quote.split()
+    return [' '.join(words[i:i + max_words]) for i in range(0, len(words), max_words)]
+
 def create_final_video(quote):
-    text_quote = fill(quote, width=30, fix_sentence_endings=True)
+    text_chunks = chunk_text(quote, max_words=5)  # Split the text into chunks of 5 words
     resolution = (1080, 1920)
 
     # Load the audio clip
@@ -92,11 +96,20 @@ def create_final_video(quote):
         # Loop the video and set it to match the audio duration
         looped_video_clip = video_clip.loop(n=loop_count).subclip(0, audio_duration).set_audio(audio_clip).resize(resolution)
 
-        # Create the text overlay
-        fact_text = TextClip("", color='white', fontsize=50).set_position(('center', 1050)).set_duration(audio_duration)
+        # Calculate the duration for each text chunk
+        chunk_duration = audio_duration / len(text_chunks)
 
-        # Combine the video and text into the final clip
-        final = CompositeVideoClip([looped_video_clip, fact_text], size=resolution)
+        # Create text clips for each chunk
+        text_clips = []
+        for i, chunk in enumerate(text_chunks):
+            text_clip = TextClip(chunk, color='white', fontsize=50)\
+                .set_position(('center', 1050))\
+                .set_duration(chunk_duration)\
+                .set_start(i * chunk_duration)
+            text_clips.append(text_clip)
+
+        # Combine the video and text clips into the final clip
+        final = CompositeVideoClip([looped_video_clip] + text_clips, size=resolution)
 
         # Export the final video
         final.write_videofile(f"output/{FINAL_VIDEO}", fps=30, codec='libx264')

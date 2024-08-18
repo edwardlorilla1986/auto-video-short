@@ -81,14 +81,16 @@ def create_text_image(text, font_path="arial.ttf", max_font_size=50, image_size=
     # Reduce font size until text fits within the image width
     while True:
         font = ImageFont.truetype(font_path, font_size)
-        wrapped_text = textwrap.fill(text, width=40)
+        wrapped_text = textwrap.fill(text, width=30)  # Limit the width further to ensure text fits
         text_width, text_height = draw.textsize(wrapped_text, font=font)
         
+        # If text fits within the image (with padding), break the loop
         if text_width <= (image_size[0] - 2 * padding) and text_height <= (image_size[1] - 2 * padding):
             break
         
+        # Reduce font size and retry
         font_size -= 1
-        if font_size <= 10:  # Set a minimum font size limit
+        if font_size <= 10:  # Set a minimum font size limit to prevent infinite loop
             break
     
     # Calculate text position to center it
@@ -100,7 +102,6 @@ def create_text_image(text, font_path="arial.ttf", max_font_size=50, image_size=
     return image, font_size
 
 def create_final_video(quote):
-    print(quote)
     resolution = (1080, 1920)
     padding = 50
 
@@ -131,19 +132,18 @@ def create_final_video(quote):
         text_clips = []
         i = 0
         while i < len(words):
-            for chunk_size in range(1, len(words) - i + 1):
+            chunk_size = 1  # Start with 1 word per image to prevent exceeding limits
+            while i + chunk_size <= len(words):
                 chunk = " ".join(words[i:i + chunk_size])
-                img, font_size = create_text_image(chunk, max_font_size=50, image_size=resolution, padding=padding)
+                img, font_size = create_text_image(chunk, max_font_size=40, image_size=resolution, padding=padding)
 
-                # If the chunk doesn't fit, stop and use the previous chunk
-                if font_size == 10 and chunk_size > 1:  # If the font size was minimized and we have more than one word in chunk
-                    chunk = " ".join(words[i:i + chunk_size - 1])
-                    img, font_size = create_text_image(chunk, max_font_size=50, image_size=resolution, padding=padding)
-                    chunk_size -= 1
+                # If the chunk fits, break and use this size
+                if font_size > 10:
                     break
+                chunk_size += 1
 
             # Create an ImageClip for the current chunk
-            chunk_duration = audio_duration / math.ceil(len(words) / chunk_size)
+            chunk_duration = audio_duration / len(words) * chunk_size
             text_clip = ImageClip(img).set_duration(chunk_duration).set_start(i / len(words) * audio_duration)
             text_clips.append(text_clip)
 

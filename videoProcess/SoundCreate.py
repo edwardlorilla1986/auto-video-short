@@ -23,7 +23,7 @@ Hi, my name is Prateek, welcome you all. Today we are going to discuss about oli
 """
 
 def make_audio(quote):
-    # Tokenize and encode the text prompt without padding
+    # Tokenize and encode the text prompt
     inputs = processor(text=quote, voice_preset=voice_preset, return_tensors="pt")
     
     # Generate the attention mask
@@ -38,6 +38,6 @@ def make_audio(quote):
     audio_array = model.generate(input_ids=inputs['input_ids'], attention_mask=attention_mask, pad_token_id=processor.tokenizer.eos_token_id)
     audio_array = audio_array.cpu().numpy().squeeze()
     
-    # Save the audio to a file
-    sample_rate = model.config.sample_rate
+    # Specify a default sample rate
+    sample_rate = 24000  # Use 24000 Hz as a common sample rate for audio
     wavfile.write(f"output/{AUDIO}.wav", rate=sample_rate, data=audio_array)

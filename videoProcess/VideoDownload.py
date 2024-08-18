@@ -100,6 +100,7 @@ def create_text_image(text, font_path="arial.ttf", max_font_size=50, image_size=
     return image, font_size
 
 def create_final_video(quote):
+    print(quote)
     resolution = (1080, 1920)
     padding = 50
 

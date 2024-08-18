@@ -24,7 +24,7 @@ Hi, my name is Prateek, welcome you all. Today we are going to discuss about oli
 
 def make_audio(quote):
     # Tokenize and encode the text prompt
-    inputs = processor(text=quote, voice_preset=voice_preset, return_tensors="pt")
+    inputs = processor(text=quote, voice_preset=voice_preset, return_tensors="pt", padding=True)
     
     # Generate the attention mask
     attention_mask = inputs['input_ids'].ne(processor.tokenizer.pad_token_id).long()
@@ -41,4 +41,3 @@ def make_audio(quote):
     # Save the audio to a file
     sample_rate = model.config.sample_rate
     wavfile.write(f"output/{AUDIO}.wav", rate=sample_rate, data=audio_array)
-

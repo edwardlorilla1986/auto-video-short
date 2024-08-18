@@ -23,8 +23,8 @@ Hi, my name is Prateek, welcome you all. Today we are going to discuss about oli
 """
 
 def make_audio(quote):
-    # Tokenize and encode the text prompt
-    inputs = processor(text=quote, voice_preset=voice_preset, return_tensors="pt", padding=True)
+    # Tokenize and encode the text prompt without padding
+    inputs = processor(text=quote, voice_preset=voice_preset, return_tensors="pt")
     
     # Generate the attention mask
     attention_mask = inputs['input_ids'].ne(processor.tokenizer.pad_token_id).long()

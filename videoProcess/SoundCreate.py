@@ -1,7 +1,6 @@
 from transformers import AutoProcessor, BarkModel
 from os import environ
 from dotenv import load_dotenv
-import torch
 
 # Load environment variables
 load_dotenv(".env")
@@ -15,11 +14,8 @@ def make_audio(quote):
     # Process the text input
     inputs = processor(text=quote, return_tensors="pt")
     
-    # Generate the attention mask manually
-    attention_mask = torch.ones(inputs['input_ids'].shape, dtype=torch.long)
-    
     # Generate the audio output
-    audio = model.generate(**inputs, attention_mask=attention_mask)
+    audio = model.generate(**inputs)  # Removed attention_mask argument
     
     # Save the audio to a file
     with open(f"output/{AUDIO}.wav", "wb") as f:

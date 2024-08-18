@@ -11,7 +11,7 @@ AUDIO = environ["AUDIO_NAME"]
 def make_audio(quote):
     processor = AutoProcessor.from_pretrained("suno/bark")
     model = BarkModel.from_pretrained("suno/bark")
-
+    print(model.config)
     # Process the text input
     inputs = processor(text=[quote], return_tensors="pt")
 
@@ -35,5 +35,4 @@ def make_audio(quote):
     # Save the audio to a file
     wavfile.write(f"output/{AUDIO}.wav", rate=model.config.sample_rate, data=audio.cpu().numpy().squeeze())
 
-# Print the model's config to check
-print(model.config)
+

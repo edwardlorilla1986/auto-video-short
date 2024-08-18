@@ -37,21 +37,7 @@ def insert_random_expressions(text, expressions, num_insertions=2):
 
 # Modify the text_prompt by inserting random expression
 def make_audio(quote):
-    # Tokenize and encode the text prompt
-    inputs = processor(text=insert_random_expressions(quote, expressions)
-, voice_preset=voice_preset, return_tensors="pt")
-    
-    # Generate the attention mask
-    attention_mask = inputs['input_ids'].ne(processor.tokenizer.pad_token_id).long()
-    inputs['attention_mask'] = attention_mask
-    
-    # Move inputs to the same device as the model
-    for key in inputs:
-        inputs[key] = inputs[key].to(device)
-    
-    # Generate the audio output with the attention mask and pad token id
-    audio_array = model.generate(input_ids=inputs['input_ids'], attention_mask=attention_mask, pad_token_id=processor.tokenizer.eos_token_id)
-    audio_array = audio_array.cpu().numpy().squeeze()
+    print("123")
     
     # Specify a default sample rate
     sample_rate = 24000  # Use 24000 Hz as a common sample rate for audio

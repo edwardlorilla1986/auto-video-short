@@ -98,22 +98,40 @@ try:
     # Load the video clip, set the audio, loop the video, and resize
     video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
 
-    # Create a text clip with the quote
-    fact_text = TextClip(text_quote, color='white', fontsize=50).set_position(('center', 'center'))
+    # Split the text into words
+    words = text_quote.split()
+    text_clips = []
+    i = 0
 
-    # Get the size of the text clip
-    fact_text_width, fact_text_height = fact_text.size
+    # Dynamically create chunks of text that fit the screen
+    while i < len(words):
+        chunk_size = 1  # Start with 1 word per image to prevent exceeding limits
+        while i + chunk_size <= len(words):
+            chunk = " ".join(words[i:i + chunk_size])
+            img, font_size = create_text_image(chunk, max_font_size=40, image_size=resolution)
 
-    # Create a semi-transparent black background clip with the same size as the text clip
-    semi_transparent_bg = ColorClip(size=(fact_text_width, fact_text_height), color=(0, 0, 0)).set_opacity(0.5).set_position(('center', 'center'))
-    final = CompositeVideoClip([video_clip, semi_transparent_bg.set_duration(video_clip.duration),
-                                fact_text.set_duration(video_clip.duration)])
+            # If the chunk fits, break and use this size
+            if font_size > 10:
+                break
+            chunk_size += 1
+
+        # Create an ImageClip for the current chunk
+        chunk_duration = audio_clip.duration / len(words) * chunk_size
+        text_clip = ImageClip(img).set_duration(chunk_duration).set_start(i / len(words) * audio_clip.duration)
+        text_clips.append(text_clip)
+
+        i += chunk_size
+
+    # Combine the video and text clips into the final clip
+    final = CompositeVideoClip([video_clip] + text_clips, size=resolution)
+
     # Export the final video
     final_video_path = f"{output_dir}/{FINAL_VIDEO}"
-    final.subclip(0, video_clip.duration).write_videofile(final_video_path, fps=30, codec='libx264')
+    final.write_videofile(final_video_path, fps=30, codec='libx264')
     print(f"Final video successfully created at {final_video_path}")
 except Exception as e:
     print(f"Error processing video: {e}")
+    exit(1)
 
 # Convert video to base64
 def video_to_base64(video_path):

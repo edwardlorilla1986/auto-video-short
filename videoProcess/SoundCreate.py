@@ -17,7 +17,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
 
 # Define the voice preset and text prompt
-voice_preset = "v2/en_speaker_6"  # English, American, male, neutral
+voice_preset = "v2/en_speaker_6"
 text_prompt = """
 Hi, my name is Prateek, welcome you all. Today we are going to discuss about olivine crystal, [laughs], so let's start.
 """
@@ -26,14 +26,19 @@ def make_audio(quote):
     # Tokenize and encode the text prompt
     inputs = processor(text=quote, voice_preset=voice_preset, return_tensors="pt")
     
+    # Generate the attention mask
+    attention_mask = inputs['input_ids'].ne(processor.tokenizer.pad_token_id).long()
+    inputs['attention_mask'] = attention_mask
+    
     # Move inputs to the same device as the model
     for key in inputs:
         inputs[key] = inputs[key].to(device)
     
-    # Generate the audio output
-    audio_array = model.generate(**inputs)
+    # Generate the audio output with the attention mask and pad token id
+    audio_array = model.generate(input_ids=inputs['input_ids'], attention_mask=attention_mask, pad_token_id=processor.tokenizer.eos_token_id)
     audio_array = audio_array.cpu().numpy().squeeze()
     
     # Save the audio to a file
-    sample_rate = model.generation_config.sample_rate
+    sample_rate = model.config.sample_rate
     wavfile.write(f"output/{AUDIO}.wav", rate=sample_rate, data=audio_array)
+

@@ -93,7 +93,7 @@ def create_final_video(quote):
         looped_video_clip = video_clip.loop(n=loop_count).subclip(0, audio_duration).set_audio(audio_clip).resize(resolution)
 
         # Create the text overlay
-        fact_text = TextClip(text_quote, color='white', fontsize=50).set_position(('center', 1050)).set_duration(audio_duration)
+        fact_text = TextClip("", color='white', fontsize=50).set_position(('center', 1050)).set_duration(audio_duration)
 
         # Combine the video and text into the final clip
         final = CompositeVideoClip([looped_video_clip, fact_text], size=resolution)

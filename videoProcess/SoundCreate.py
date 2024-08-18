@@ -26,9 +26,9 @@ Hi, my name is Prateek, welcome you all. Today we are going to discuss about oli
 """
 
 # List of random expressions to insert
-expressions = ["[sighs]", "[gasps]", "[MAN]", "[WOMAN]"]
+expressions = [ "[MAN]", "[WOMAN]"]
 
-def insert_random_expressions(text, expressions, num_insertions=1):
+def insert_random_expressions(text, expressions, num_insertions=2):
     words = text.split()
     for _ in range(num_insertions):
         index = random.randint(0, len(words) - 1)

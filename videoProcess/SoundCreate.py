@@ -11,7 +11,7 @@ AUDIO = environ["AUDIO_NAME"]
 def make_audio(quote):
     processor = AutoProcessor.from_pretrained("suno/bark")
     model = BarkModel.from_pretrained("suno/bark")
-    print(model.config)
+
     # Process the text input
     inputs = processor(text=[quote], return_tensors="pt")
 
@@ -19,20 +19,34 @@ def make_audio(quote):
     if 'attention_mask' not in inputs:
         inputs['attention_mask'] = torch.ones_like(inputs['input_ids'])
 
-    # Modify the model's generation config
-    model.config.use_cache = False
-    model.config.pad_token_id = processor.tokenizer.eos_token_id
+    # Modify the model's forward method to always use the attention mask
+    original_forward = model.forward
+
+    def new_forward(*args, **kwargs):
+        if 'attention_mask' not in kwargs:
+            kwargs['attention_mask'] = inputs['attention_mask']
+        return original_forward(*args, **kwargs)
+
+    model.forward = new_forward
+
+    # Set generation parameters
+    generation_config = model.generation_config
+    generation_config.pad_token_id = processor.tokenizer.eos_token_id
+    generation_config.max_new_tokens = 256
 
     # Generate the audio output
-    audio = model.generate(
-        **inputs,
-        do_sample=True,
-        max_new_tokens=256,
-        temperature=0.7,
-        no_repeat_ngram_size=3
-    )
+    with torch.no_grad():
+        audio = model.generate(
+            **inputs,
+            generation_config=generation_config
+        )
+
+    # Restore original forward method
+    model.forward = original_forward
 
     # Save the audio to a file
     wavfile.write(f"output/{AUDIO}.wav", rate=model.config.sample_rate, data=audio.cpu().numpy().squeeze())
 
-
+    # Print debug information
+    print("Inputs:", inputs)
+    print("Generation Config:", generation_config)

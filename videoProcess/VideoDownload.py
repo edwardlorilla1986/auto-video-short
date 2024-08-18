@@ -8,7 +8,7 @@ from os import environ
 from dotenv import load_dotenv
 from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip
 from textwrap import fill
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import math
 # Load environment constants
 load_dotenv(".env")
@@ -68,26 +68,30 @@ def download_video():
     except Exception as e:
         print(f"Error downloading video: {e}")
 
-def chunk_text(quote, max_words=5):
-    words = quote.split()
-    return [' '.join(words[i:i + max_words]) for i in range(0, len(words), max_words)]
+def create_text_image(text, size, font_size=50):
+    font = ImageFont.truetype("arial", font_size)
+    image = Image.new('RGB', size, color=(0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    text_width, text_height = draw.textsize(text, font=font)
+    position = ((size[0] - text_width) // 2, (size[1] - text_height) // 2)
+    draw.text(position, text, font=font, fill=(255, 255, 255))
+    return image
 
 def create_final_video(quote):
-    text_chunks = chunk_text(quote, max_words=5)  # Split the text into chunks of 5 words
     resolution = (1080, 1920)
-
+    
     # Load the audio clip
     audio_clip = AudioFileClip(f"output/{AUDIO_NAME}")
-
+    
     video_path = f"output/{VIDEO_NAME}"
     if not os.path.exists(video_path):
         print(f"Error: {video_path} could not be found before processing")
         return
-
+    
     try:
         # Load the video clip without audio
         video_clip = VideoFileClip(video_path, audio=False)
-
+        
         # Calculate how many times the video needs to loop to match the audio duration
         video_duration = video_clip.duration
         audio_duration = audio_clip.duration
@@ -96,16 +100,14 @@ def create_final_video(quote):
         # Loop the video and set it to match the audio duration
         looped_video_clip = video_clip.loop(n=loop_count).subclip(0, audio_duration).set_audio(audio_clip).resize(resolution)
 
-        # Calculate the duration for each text chunk
+        # Split the text into chunks and create corresponding image clips
+        text_chunks = quote.split(" ")  # You can refine this to chunk by sentences or phrases
         chunk_duration = audio_duration / len(text_chunks)
 
-        # Create text clips for each chunk
         text_clips = []
         for i, chunk in enumerate(text_chunks):
-            text_clip = TextClip(chunk, color='white', fontsize=50)\
-                .set_position(('center', 1050))\
-                .set_duration(chunk_duration)\
-                .set_start(i * chunk_duration)
+            img = create_text_image(chunk, size=resolution)
+            text_clip = ImageClip(img).set_duration(chunk_duration).set_start(i * chunk_duration)
             text_clips.append(text_clip)
 
         # Combine the video and text clips into the final clip
@@ -116,4 +118,3 @@ def create_final_video(quote):
         print(f"Final video successfully created at output/{FINAL_VIDEO}")
     except Exception as e:
         print(f"Error processing video: {e}")
-

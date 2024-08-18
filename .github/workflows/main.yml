@@ -61,6 +61,7 @@ jobs:
         sudo sed -i 's/<policy domain="coder" rights="none" pattern="URL"/<!-- <policy domain="coder" rights="none" pattern="URL" -->/' $POLICY_FILE || true
         sudo sed -i 's/<policy domain="coder" rights="none" pattern="MVG"/<!-- <policy domain="coder" rights="none" pattern="MVG" -->/' $POLICY_FILE || true
         sudo sed -i 's/<policy domain="coder" rights="none" pattern="MSL"/<!-- <policy domain="coder" rights="none" pattern="MSL" -->/' $POLICY_FILE || true
+        sudo sed -i 's/<policy domain="coder" rights="none" pattern="MSL"/<!-- <policy domain="coder" rights="none" pattern="PDF" -->/' $POLICY_FILE || true
 
     - name: Run script
       run: python main.py

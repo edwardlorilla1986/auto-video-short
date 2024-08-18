@@ -13,15 +13,16 @@ def make_audio(quote):
     model = BarkModel.from_pretrained("suno/bark")
 
     # Process the text input
-    inputs = processor(text=quote, return_tensors="pt")
+    inputs = processor(text=[quote], return_tensors="pt")
 
-    # Explicitly set the attention mask
-    attention_mask = torch.ones_like(inputs['input_ids'])
-    inputs['attention_mask'] = attention_mask
+    # Ensure attention_mask is created and passed correctly
+    if 'attention_mask' not in inputs:
+        inputs['attention_mask'] = torch.ones_like(inputs['input_ids'])
 
     # Generate the audio output
     audio = model.generate(
-        **inputs,
+        input_ids=inputs['input_ids'],
+        attention_mask=inputs['attention_mask'],
         pad_token_id=processor.tokenizer.eos_token_id
     )
 

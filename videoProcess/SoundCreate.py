@@ -19,16 +19,6 @@ def make_audio(quote):
     if 'attention_mask' not in inputs:
         inputs['attention_mask'] = torch.ones_like(inputs['input_ids'])
 
-    # Modify the model's forward method to always use the attention mask
-    original_forward = model.forward
-
-    def new_forward(*args, **kwargs):
-        if 'attention_mask' not in kwargs:
-            kwargs['attention_mask'] = inputs['attention_mask']
-        return original_forward(*args, **kwargs)
-
-    model.forward = new_forward
-
     # Set generation parameters
     generation_config = model.generation_config
     generation_config.pad_token_id = processor.tokenizer.eos_token_id
@@ -40,9 +30,6 @@ def make_audio(quote):
             **inputs,
             generation_config=generation_config
         )
-
-    # Restore original forward method
-    model.forward = original_forward
 
     # Save the audio to a file
     wavfile.write(f"output/{AUDIO}.wav", rate=model.config.sample_rate, data=audio.cpu().numpy().squeeze())

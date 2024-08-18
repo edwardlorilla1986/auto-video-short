@@ -3,6 +3,7 @@ from transformers import AutoProcessor, BarkModel
 import scipy.io.wavfile as wavfile
 from os import environ
 from dotenv import load_dotenv
+import random
 
 # Load environment variables
 load_dotenv(".env")
@@ -16,11 +17,26 @@ model = BarkModel.from_pretrained("suno/bark")
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
 
-# Define the voice preset and text prompt
+# Define the voice preset
 voice_preset = "v2/en_speaker_6"
+
+# Define the text prompt
 text_prompt = """
-Hi, my name is Prateek, welcome you all. Today we are going to discuss about olivine crystal, [laughs], so let's start.
+Hi, my name is Prateek, welcome you all. Today we are going to discuss about olivine crystal, so let's start.
 """
+
+# List of random expressions to insert
+expressions = ["[laughter]", "[laughs]", "[sighs]", "[gasps]", "[clears throat]", "—", "..."]
+
+def insert_random_expressions(text, expressions, num_insertions=3):
+    words = text.split()
+    for _ in range(num_insertions):
+        index = random.randint(0, len(words) - 1)
+        words.insert(index, random.choice(expressions))
+    return " ".join(words)
+
+# Modify the text_prompt by inserting random expressions
+text_prompt = insert_random_expressions(text_prompt, expressions)
 
 def make_audio(quote):
     # Tokenize and encode the text prompt

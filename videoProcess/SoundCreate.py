@@ -40,4 +40,4 @@ def make_audio(quote):
     
     # Specify a default sample rate
     sample_rate = 24000  # Use 24000 Hz as a common sample rate for audio
-    wavfile.write(f"output/{AUDIO}.wav", rate=sample_rate, data=audio_array)
+    wavfile.write(f"output/{AUDIO}", rate=sample_rate, data=audio_array)

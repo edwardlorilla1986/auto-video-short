@@ -38,7 +38,3 @@ def insert_random_expressions(text, expressions, num_insertions=2):
 # Modify the text_prompt by inserting random expression
 def make_audio(quote):
     print("123")
-    
-    # Specify a default sample rate
-    sample_rate = 24000  # Use 24000 Hz as a common sample rate for audio
-    wavfile.write(f"output/{AUDIO}", rate=sample_rate, data=audio_array)

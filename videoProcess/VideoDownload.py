@@ -68,30 +68,40 @@ def download_video():
     except Exception as e:
         print(f"Error downloading video: {e}")
 
-def create_text_image(text, font_path="arial.ttf", font_size=50, image_size=(1080, 1920), text_color="white", bg_color="black"):
+def create_text_image(text, font_path="arial.ttf", max_font_size=50, image_size=(1080, 1920), text_color="white", bg_color="black", padding=50):
     # Create a blank image with the specified background color
     image = Image.new('RGB', image_size, color=bg_color)
     
     # Initialize the drawing context
     draw = ImageDraw.Draw(image)
     
-    # Load the font
-    font = ImageFont.truetype(font_path, font_size)
+    # Start with the maximum font size
+    font_size = max_font_size
+
+    # Reduce font size until text fits within the image width
+    while True:
+        font = ImageFont.truetype(font_path, font_size)
+        wrapped_text = textwrap.fill(text, width=40)
+        text_width, text_height = draw.textsize(wrapped_text, font=font)
+        
+        if text_width <= (image_size[0] - 2 * padding) and text_height <= (image_size[1] - 2 * padding):
+            break
+        
+        font_size -= 1
+        if font_size <= 10:  # Set a minimum font size limit
+            break
     
-    # Wrap the text to fit the image width
-    wrapped_text = textwrap.fill(text, width=40)
-    
-    # Calculate text size and position
-    text_width, text_height = draw.textsize(wrapped_text, font=font)
+    # Calculate text position to center it
     position = ((image_size[0] - text_width) // 2, (image_size[1] - text_height) // 2)
     
     # Draw the text on the image
     draw.text(position, wrapped_text, font=font, fill=text_color)
     
-    return image
+    return image, font_size
 
 def create_final_video(quote):
     resolution = (1080, 1920)
+    padding = 50
 
     # Load the audio clip
     audio_clip = AudioFileClip(f"output/{AUDIO_NAME}")
@@ -113,16 +123,30 @@ def create_final_video(quote):
         # Loop the video and set it to match the audio duration
         looped_video_clip = video_clip.loop(n=loop_count).subclip(0, audio_duration).set_audio(audio_clip).resize(resolution)
 
-        # Split the text into chunks for sequential display
-        text_chunks = textwrap.wrap(quote, width=40)
-        chunk_duration = audio_duration / len(text_chunks)
+        # Split the quote into individual words
+        words = quote.split()
 
-        # Create ImageClips from text chunks
+        # Dynamically chunk words to fit the screen
         text_clips = []
-        for i, chunk in enumerate(text_chunks):
-            img = create_text_image(chunk, image_size=resolution)
-            text_clip = ImageClip(img).set_duration(chunk_duration).set_start(i * chunk_duration)
+        i = 0
+        while i < len(words):
+            for chunk_size in range(1, len(words) - i + 1):
+                chunk = " ".join(words[i:i + chunk_size])
+                img, font_size = create_text_image(chunk, max_font_size=50, image_size=resolution, padding=padding)
+
+                # If the chunk doesn't fit, stop and use the previous chunk
+                if font_size == 10 and chunk_size > 1:  # If the font size was minimized and we have more than one word in chunk
+                    chunk = " ".join(words[i:i + chunk_size - 1])
+                    img, font_size = create_text_image(chunk, max_font_size=50, image_size=resolution, padding=padding)
+                    chunk_size -= 1
+                    break
+
+            # Create an ImageClip for the current chunk
+            chunk_duration = audio_duration / math.ceil(len(words) / chunk_size)
+            text_clip = ImageClip(img).set_duration(chunk_duration).set_start(i / len(words) * audio_duration)
             text_clips.append(text_clip)
+
+            i += chunk_size
 
         # Combine the video and text clips into the final clip
         final = CompositeVideoClip([looped_video_clip] + text_clips, size=resolution)

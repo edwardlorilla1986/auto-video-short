@@ -68,27 +68,38 @@ def download_video():
     except Exception as e:
         print(f"Error downloading video: {e}")
 
-def create_final_video():
-    # Prepare the quote text for the video
-    quote = "This is a sample quote for generating speech."
+def create_final_video(quote):
     text_quote = fill(quote, width=30, fix_sentence_endings=True)
     resolution = (1080, 1920)
 
     # Load the audio clip
     audio_clip = AudioFileClip(f"output/{AUDIO_NAME}")
 
-    try:
-        video_path = f"output/{VIDEO_NAME}"
-        # Check if the video file exists before proceeding
-        if not os.path.exists(video_path):
-            print(f"Error: {video_path} could not be found before processing")
-            return
+    video_path = f"output/{VIDEO_NAME}"
+    if not os.path.exists(video_path):
+        print(f"Error: {video_path} could not be found before processing")
+        return
 
-        # Load the video clip and resize it
-        video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
-        fact_text = TextClip(text_quote, color='white', fontsize=50).set_position(('center', 1050))
-        final = CompositeVideoClip([video_clip, fact_text], size=resolution)
-        final.subclip(0, video_clip.duration).write_videofile(f"output/{FINAL_VIDEO}", fps=30, codec='libx264')
+    try:
+        # Load the video clip without audio
+        video_clip = VideoFileClip(video_path, audio=False)
+
+        # Calculate how many times the video needs to loop to match the audio duration
+        video_duration = video_clip.duration
+        audio_duration = audio_clip.duration
+        loop_count = int(audio_duration // video_duration) + 1
+
+        # Loop the video and set it to match the audio duration
+        looped_video_clip = video_clip.loop(n=loop_count).subclip(0, audio_duration).set_audio(audio_clip).resize(resolution)
+
+        # Create the text overlay
+        fact_text = TextClip(text_quote, color='white', fontsize=50).set_position(('center', 1050)).set_duration(audio_duration)
+
+        # Combine the video and text into the final clip
+        final = CompositeVideoClip([looped_video_clip, fact_text], size=resolution)
+
+        # Export the final video
+        final.write_videofile(f"output/{FINAL_VIDEO}", fps=30, codec='libx264')
         print(f"Final video successfully created at output/{FINAL_VIDEO}")
     except Exception as e:
         print(f"Error processing video: {e}")

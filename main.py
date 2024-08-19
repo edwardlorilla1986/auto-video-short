@@ -109,14 +109,9 @@ def create_text_image(text, font_path="arial.ttf", max_font_size=50, image_size=
 
     # Reduce font size until text fits within the image width
     while True:
-        try:
-            font = ImageFont.truetype(font_path, font_size)
-        except IOError:
-            font = ImageFont.load_default()
-
         wrapped_text = textwrap.fill(text, width=30)  # Adjust the width to ensure text fits
         text_width, text_height = draw.textsize(wrapped_text, font=font)
-        
+    
         # If text fits within the image (with padding), break the loop
         if text_width <= (image_size[0] - 2 * padding) and text_height <= (image_size[1] - 2 * padding):
             break

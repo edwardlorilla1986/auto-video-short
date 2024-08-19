@@ -135,9 +135,11 @@ def create_text_image(text, font_path="arial.ttf", max_font_size=50, image_size=
     # Draw the text on the image
     draw.text(position, wrapped_text, font=font, fill=text_color)
     
-    return image, font_size
+    # Convert the PIL Image to a NumPy array
+    image_np = np.array(image)
+    
+    return image_np, font_size
 
-    # Load the video clip, set the audio, loop the video, and resize
 video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
 
 # Split the text into words
@@ -157,7 +159,7 @@ while i < len(words):
             break
         chunk_size += 1
 
-    # Create an ImageClip for the current chunk
+    # Create an ImageClip for the current chunk using the NumPy array
     chunk_duration = audio_clip.duration / len(words) * chunk_size
     text_clip = ImageClip(img).set_duration(chunk_duration).set_start(i / len(words) * audio_clip.duration)
     text_clips.append(text_clip)
@@ -171,6 +173,7 @@ final = CompositeVideoClip([video_clip] + text_clips, size=resolution)
 final_video_path = f"{output_dir}/{FINAL_VIDEO}"
 final.write_videofile(final_video_path, fps=30, codec='libx264')
 print(f"Final video successfully created at {final_video_path}")
+
 
 
 # Convert video to base64

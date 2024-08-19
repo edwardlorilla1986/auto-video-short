@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import base64
 import requests
 import smtplib

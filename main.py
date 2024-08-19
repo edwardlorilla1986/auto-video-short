@@ -17,7 +17,6 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2.credentials import Credentials
 from PIL import Image, ImageDraw, ImageFont
-import textwrap
 # Load environment variables from .env file if running locally
 load_dotenv(".env")
 

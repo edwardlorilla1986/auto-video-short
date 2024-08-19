@@ -32,6 +32,6 @@ def fetch_poem(poet=""):
 
 
 def get_quote():
-    random_poem = fetch_poem()
-    poem_message = format_message(random_poem)
-    return poem_message
+    fact_key = os.environ["FACT_KEY"]
+    response = requests.request("GET", os.environ["FACT_URL"])
+    formatted = response.text

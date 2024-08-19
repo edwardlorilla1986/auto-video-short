@@ -102,12 +102,7 @@ def create_text_image(text, font_path="arial.ttf", max_font_size=50, image_size=
     # Initialize the drawing context
     draw = ImageDraw.Draw(image)
     
-    # Attempt to load the specified font, or fall back to a default font
-    try:
-        font = ImageFont.truetype(font_path, max_font_size)
-    except IOError:
-        print(f"Warning: Could not find the font {font_path}. Falling back to default font.")
-        font = ImageFont.load_default()
+    font = ImageFont.load_default()
 
     # Start with the maximum font size
     font_size = max_font_size

@@ -4,7 +4,7 @@ import requests
 import smtplib
 from os import environ
 from dotenv import load_dotenv
-from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip, ColorClip
+from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip, ColorClip, ImageClip
 from textwrap import fill, shorten
 from pyfiglet import Figlet
 from videoProcess.Quote import get_quote

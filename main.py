@@ -137,44 +137,42 @@ def create_text_image(text, font_path="arial.ttf", max_font_size=50, image_size=
     draw.text(position, wrapped_text, font=font, fill=text_color)
     
     return image, font_size
-try:
+
     # Load the video clip, set the audio, loop the video, and resize
-    video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
+video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
 
-    # Split the text into words
-    words = text_quote.split()
-    text_clips = []
-    i = 0
+# Split the text into words
+words = text_quote.split()
+text_clips = []
+i = 0
 
-    # Dynamically create chunks of text that fit the screen
-    while i < len(words):
-        chunk_size = 1  # Start with 1 word per image to prevent exceeding limits
-        while i + chunk_size <= len(words):
-            chunk = " ".join(words[i:i + chunk_size])
-            img, font_size = create_text_image(chunk, max_font_size=40, image_size=resolution)
+# Dynamically create chunks of text that fit the screen
+while i < len(words):
+    chunk_size = 1  # Start with 1 word per image to prevent exceeding limits
+    while i + chunk_size <= len(words):
+        chunk = " ".join(words[i:i + chunk_size])
+        img, font_size = create_text_image(chunk, max_font_size=40, image_size=resolution)
 
-            # If the chunk fits, break and use this size
-            if font_size > 10:
-                break
-            chunk_size += 1
+        # If the chunk fits, break and use this size
+        if font_size > 10:
+            break
+        chunk_size += 1
 
-        # Create an ImageClip for the current chunk
-        chunk_duration = audio_clip.duration / len(words) * chunk_size
-        text_clip = ImageClip(img).set_duration(chunk_duration).set_start(i / len(words) * audio_clip.duration)
-        text_clips.append(text_clip)
+    # Create an ImageClip for the current chunk
+    chunk_duration = audio_clip.duration / len(words) * chunk_size
+    text_clip = ImageClip(img).set_duration(chunk_duration).set_start(i / len(words) * audio_clip.duration)
+    text_clips.append(text_clip)
 
-        i += chunk_size
+    i += chunk_size
 
-    # Combine the video and text clips into the final clip
-    final = CompositeVideoClip([video_clip] + text_clips, size=resolution)
+# Combine the video and text clips into the final clip
+final = CompositeVideoClip([video_clip] + text_clips, size=resolution)
 
-    # Export the final video
-    final_video_path = f"{output_dir}/{FINAL_VIDEO}"
-    final.write_videofile(final_video_path, fps=30, codec='libx264')
-    print(f"Final video successfully created at {final_video_path}")
-except Exception as e:
-    print(f"Error processing video: {e}")
-    exit(1)
+# Export the final video
+final_video_path = f"{output_dir}/{FINAL_VIDEO}"
+final.write_videofile(final_video_path, fps=30, codec='libx264')
+print(f"Final video successfully created at {final_video_path}")
+
 
 # Convert video to base64
 def video_to_base64(video_path):

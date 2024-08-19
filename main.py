@@ -93,7 +93,38 @@ try:
 except Exception as e:
     print(f"Error loading audio clip: {e}")
     exit(1)
+def create_text_image(text, font_path="arial.ttf", max_font_size=50, image_size=(1080, 1920), text_color="white", bg_color="black", padding=50):
+    # Create a blank image with the specified background color
+    image = Image.new('RGB', image_size, color=bg_color)
+    
+    # Initialize the drawing context
+    draw = ImageDraw.Draw(image)
+    
+    # Start with the maximum font size
+    font_size = max_font_size
 
+    # Reduce font size until text fits within the image width
+    while True:
+        font = ImageFont.truetype(font_path, font_size)
+        wrapped_text = textwrap.fill(text, width=30)  # Limit the width further to ensure text fits
+        text_width, text_height = draw.textsize(wrapped_text, font=font)
+        
+        # If text fits within the image (with padding), break the loop
+        if text_width <= (image_size[0] - 2 * padding) and text_height <= (image_size[1] - 2 * padding):
+            break
+        
+        # Reduce font size and retry
+        font_size -= 1
+        if font_size <= 10:  # Set a minimum font size limit to prevent infinite loop
+            break
+    
+    # Calculate text position to center it
+    position = ((image_size[0] - text_width) // 2, (image_size[1] - text_height) // 2)
+    
+    # Draw the text on the image
+    draw.text(position, wrapped_text, font=font, fill=text_color)
+    
+    return image, font_size
 try:
     # Load the video clip, set the audio, loop the video, and resize
     video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)

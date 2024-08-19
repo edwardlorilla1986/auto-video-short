@@ -35,3 +35,5 @@ def get_quote():
     fact_key = os.environ["FACT_KEY"]
     response = requests.request("GET", os.environ["FACT_URL"])
     formatted = response.text
+    parse_json = json.loads(formatted)
+    return parse_json[fact_key]

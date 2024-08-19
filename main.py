@@ -100,13 +100,24 @@ def create_text_image(text, font_path="arial.ttf", max_font_size=50, image_size=
     # Initialize the drawing context
     draw = ImageDraw.Draw(image)
     
+    # Attempt to load the specified font, or fall back to a default font
+    try:
+        font = ImageFont.truetype(font_path, max_font_size)
+    except IOError:
+        print(f"Warning: Could not find the font {font_path}. Falling back to default font.")
+        font = ImageFont.load_default()
+
     # Start with the maximum font size
     font_size = max_font_size
 
     # Reduce font size until text fits within the image width
     while True:
-        font = ImageFont.truetype(font_path, font_size)
-        wrapped_text = textwrap.fill(text, width=30)  # Limit the width further to ensure text fits
+        try:
+            font = ImageFont.truetype(font_path, font_size)
+        except IOError:
+            font = ImageFont.load_default()
+
+        wrapped_text = textwrap.fill(text, width=30)  # Adjust the width to ensure text fits
         text_width, text_height = draw.textsize(wrapped_text, font=font)
         
         # If text fits within the image (with padding), break the loop

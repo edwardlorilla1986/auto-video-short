@@ -1,12 +1,11 @@
+
 import os
-import numpy as np
 import base64
 import requests
 import smtplib
 from os import environ
 from dotenv import load_dotenv
-from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip, ColorClip, ImageClip
-import textwrap  # <-- Import textwrap here
+from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip, ColorClip
 from textwrap import fill, shorten
 from pyfiglet import Figlet
 from videoProcess.Quote import get_quote
@@ -18,7 +17,7 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2.credentials import Credentials
-from PIL import Image, ImageDraw, ImageFont
+
 # Load environment variables from .env file if running locally
 load_dotenv(".env")
 
@@ -95,78 +94,27 @@ try:
 except Exception as e:
     print(f"Error loading audio clip: {e}")
     exit(1)
-def create_text_image(text, font_path="arial.ttf", max_font_size=50, image_size=(1080, 1920), text_color="white", bg_color="black", padding=50):
-    # Create a blank image with the specified background color
-    image = Image.new('RGB', image_size, color=bg_color)
-    
-    # Initialize the drawing context
-    draw = ImageDraw.Draw(image)
-    
-    font = ImageFont.load_default()
 
-    # Start with the maximum font size
-    font_size = max_font_size
+try:
+    # Load the video clip, set the audio, loop the video, and resize
+    video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
 
-    # Reduce font size until text fits within the image width
-    while True:
-        wrapped_text = textwrap.fill(text, width=30)  # Adjust the width to ensure text fits
-        text_width, text_height = draw.textsize(wrapped_text, font=font)
-    
-        # If text fits within the image (with padding), break the loop
-        if text_width <= (image_size[0] - 2 * padding) and text_height <= (image_size[1] - 2 * padding):
-            break
-        
-        # Reduce font size and retry
-        font_size -= 1
-        if font_size <= 10:  # Set a minimum font size limit to prevent infinite loop
-            break
-    
-    # Calculate text position to center it
-    position = ((image_size[0] - text_width) // 2, (image_size[1] - text_height) // 2)
-    
-    # Draw the text on the image
-    draw.text(position, wrapped_text, font=font, fill=text_color)
-    
-    # Convert the PIL Image to a NumPy array
-    image_np = np.array(image)
-    
-    return image_np, font_size
+    # Create a text clip with the quote
+    fact_text = TextClip(text_quote, color='white', fontsize=50).set_position(('center', 'center'))
 
-video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
+    # Get the size of the text clip
+    fact_text_width, fact_text_height = fact_text.size
 
-# Split the text into words
-words = text_quote.split()
-text_clips = []
-i = 0
-
-# Dynamically create chunks of text that fit the screen
-while i < len(words):
-    chunk_size = 1  # Start with 1 word per image to prevent exceeding limits
-    while i + chunk_size <= len(words):
-        chunk = " ".join(words[i:i + chunk_size])
-        img, font_size = create_text_image(chunk, max_font_size=40, image_size=resolution)
-
-        # If the chunk fits, break and use this size
-        if font_size > 10:
-            break
-        chunk_size += 1
-
-    # Create an ImageClip for the current chunk using the NumPy array
-    chunk_duration = audio_clip.duration / len(words) * chunk_size
-    text_clip = ImageClip(img).set_duration(chunk_duration).set_start(i / len(words) * audio_clip.duration)
-    text_clips.append(text_clip)
-
-    i += chunk_size
-
-# Combine the video and text clips into the final clip
-final = CompositeVideoClip([video_clip] + text_clips, size=resolution)
-
-# Export the final video
-final_video_path = f"{output_dir}/{FINAL_VIDEO}"
-final.write_videofile(final_video_path, fps=30, codec='libx264')
-print(f"Final video successfully created at {final_video_path}")
-
-
+    # Create a semi-transparent black background clip with the same size as the text clip
+    semi_transparent_bg = ColorClip(size=(fact_text_width, fact_text_height), color=(0, 0, 0)).set_opacity(0.5).set_position(('center', 'center'))
+    final = CompositeVideoClip([video_clip, semi_transparent_bg.set_duration(video_clip.duration),
+                                fact_text.set_duration(video_clip.duration)])
+    # Export the final video
+    final_video_path = f"{output_dir}/{FINAL_VIDEO}"
+    final.subclip(0, video_clip.duration).write_videofile(final_video_path, fps=30, codec='libx264')
+    print(f"Final video successfully created at {final_video_path}")
+except Exception as e:
+    print(f"Error processing video: {e}")
 
 # Convert video to base64
 def video_to_base64(video_path):
@@ -459,7 +407,7 @@ def upload_video_to_youtube(video_file_path, title, description, tags, category_
 
 # Example usage for YouTube
 youtube_title = shorten(text_quote, width=90, placeholder="...")
-youtube_description = text_quote
+youtube_description = "https://amzn.to/4cv2MXh " +  text_quote
 youtube_tags = ['cats', 'facts']
 youtube_category_id = '22'  # YouTube category ID
 youtube_privacy_status = 'public'

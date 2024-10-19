@@ -44,7 +44,7 @@ def make_audio(quote):
     Generate audio from a quote by splitting the text into chunks.
     """
     # Example expressions to add
-    expressions = ["wow", "haha", "hmm"]
+    expressions = [""]
 
     # Insert random expressions into the text
     processed_text = insert_random_expressions(quote, expressions)

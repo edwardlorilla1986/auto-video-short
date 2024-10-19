@@ -71,12 +71,13 @@ jobs:
     - name: Generate Cat Fact Using Ollama API
       id: generate_cat_fact
       run: |
+        # Replace problematic characters manually without regex
         cat_fact=$(curl -s -X POST http://localhost:11434/api/generate -d '{"model": "llama2", "prompt": "Give me an interesting fact about cats."}' | jq -r '.response' | tr -d '\n' | tr -d '\r')
-
-        # Sanitize the cat_fact using regex to escape or remove problematic characters
-        sanitized_cat_fact=$(echo "$cat_fact" | sed 's/["`\\]/\\&/g')
-
-        echo "cat_fact=\"$sanitized_cat_fact\"" >> $GITHUB_ENV
+        # Sanitize by manually escaping characters
+        cat_fact=${cat_fact//\"/\\\"}  # Escape double quotes
+        cat_fact=${cat_fact//`/\\`}  # Escape backticks
+        cat_fact=${cat_fact//\\/\\\\}  # Escape backslashes
+        echo "cat_fact=\"$cat_fact\"" >> $GITHUB_ENV
 
     - name: Update ImageMagick policy
       run: |

@@ -61,7 +61,7 @@ except Exception as e:
 quote_file_path = os.path.join(output_dir, "quote.txt")
 try:
     with open(quote_file_path, "w") as file:
-        file.write(text_quote)
+        file.write(shorten(text_quote, width=90, placeholder="..."))
     print(f"Quote saved to {quote_file_path}")
 except Exception as e:
     print(f"Error saving quote to file: {e}")

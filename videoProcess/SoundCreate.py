@@ -104,6 +104,4 @@ def make_audio(quote):
     sample_rate = 24000  # 24000 Hz is a common sample rate for audio
 
     # Save the concatenated audio output as a .wav file
-    wavfile.write(f"output/full_audio.wav", rate=sample_rate, data=full_audio)
-
-    print("Full audio generated and saved as 'full_audio.wav'.")
+    wavfile.write(f"output/{AUDIO}", rate=sample_rate, data=audio_array)

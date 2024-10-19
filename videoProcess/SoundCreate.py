@@ -5,7 +5,7 @@ import numpy as np
 from os import environ
 from dotenv import load_dotenv
 import random
-
+import nltk 
 # Load environment variables
 load_dotenv(".env")
 AUDIO = environ["AUDIO_NAME"]
@@ -27,7 +27,7 @@ Hi, my name is Prateek, welcome you all. Today we are going to discuss olivine c
 """
 
 # List of optional expressions to insert
-expressions = ["wow", "uh", "hmm", "interesting"]
+expressions = [""]
 
 def insert_random_expressions(text, expressions, num_insertions=2):
     words = text.split()
@@ -36,26 +36,31 @@ def insert_random_expressions(text, expressions, num_insertions=2):
         words.insert(index, random.choice(expressions))
     return " ".join(words)
 
-def split_text_into_chunks(text, max_length):
-    words = text.split()
+ # For splitting text into sentences
+
+nltk.download('punkt')
+
+def split_text_into_sentences(text, max_length):
+    sentences = nltk.sent_tokenize(text)
     chunks = []
-    current_chunk = []
-
-    for word in words:
-        current_chunk.append(word)
-        if len(processor(" ".join(current_chunk), return_tensors="pt")['input_ids'][0]) > max_length:
-            chunks.append(" ".join(current_chunk[:-1]))
-            current_chunk = [word]
-
+    current_chunk = ""
+    
+    for sentence in sentences:
+        if len(current_chunk) + len(sentence) <= max_length:
+            current_chunk += " " + sentence
+        else:
+            chunks.append(current_chunk.strip())
+            current_chunk = sentence
+            
     if current_chunk:
-        chunks.append(" ".join(current_chunk))
-
+        chunks.append(current_chunk.strip())
+    
     return chunks
 
 def make_audio(quote):
     processed_text = insert_random_expressions(quote, expressions)
     max_length = 512  # Adjust based on the model's limit
-    chunks = split_text_into_chunks(processed_text, max_length)
+    chunks = split_text_into_sentences(processed_text, max_length)
 
     full_audio = np.array([])
 
@@ -76,7 +81,13 @@ def make_audio(quote):
             )
 
             audio_array = audio_array.cpu().numpy().squeeze()
-            full_audio = np.concatenate([full_audio, audio_array])
+
+            # Introduce a small pause of silence (e.g., 1 second at 24000 Hz)
+            pause_duration = 1 * 24000  # 1 second pause
+            silence = np.zeros(pause_duration)
+
+            # Concatenate the generated audio and silence to the final output
+            full_audio = np.concatenate([full_audio, audio_array, silence])
 
         except Exception as e:
             print(f"Error generating audio for chunk {i + 1}: {e}")

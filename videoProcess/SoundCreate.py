@@ -36,7 +36,7 @@ def insert_random_expressions(text, expressions, num_insertions=2):
     return " ".join(words)
 
 
-def split_text_into_sentences_basic(text, max_length):
+def split_text_into_sentences(text, max_length):
     # Split based on period, exclamation mark, or question mark
     sentences = re.split(r'(?<=[.!?]) +', text)
     chunks = []

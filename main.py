@@ -95,13 +95,16 @@ try:
 except Exception as e:
     print(f"Error loading audio clip: {e}")
     exit(1)
-
+def shorten_text(text, max_length=30):
+    if len(text) > max_length:
+        return text[:max_length - 3] + '...'  # Truncate and add ellipsis
+    return text
 try:
     # Load the video clip, set the audio, loop the video, and resize
     video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
 
     # Create a text clip with the quote
-    fact_text = TextClip(text_quote, color='white', fontsize=50).set_position(('center', 'center'))
+    fact_text = TextClip(shorten_text(text_quote, max_length=30), color='white', fontsize=50).set_position(('center', 'center'))
 
     # Get the size of the text clip
     fact_text_width, fact_text_height = fact_text.size

@@ -71,15 +71,15 @@ jobs:
     - name: Generate Cat Fact Using Ollama API
       id: generate_cat_fact
       run: |
-        # Use jq to extract the response and sanitize it by replacing any problematic quotes
-        cat_fact=$(curl -s -X POST http://localhost:11434/api/generate -d '{"model": "llama2", "prompt": "Give me an interesting fact about cats."}' | jq -r '.response')
+        cat_fact=$(curl -s -X POST http://localhost:11434/api/generate -d '{"model": "llama2", "prompt": "Give me an interesting fact about cats."}' | jq -r '.response' | tr -d '\n' | tr -d '\r')
         
-        # Escape any special characters like double quotes, backslashes, and newlines for safety
-        sanitized_cat_fact="${cat_fact//\"/\\\"}"  # Escape double quotes
-        sanitized_cat_fact="${sanitized_cat_fact//\\/\\\\}"  # Escape backslashes
-
-        # Export the sanitized cat fact
-        echo "cat_fact=\"$sanitized_cat_fact\"" >> $GITHUB_ENV
+        # Escape special characters
+        cat_fact=${cat_fact//\'/\\\'}  # Escape single quotes
+        cat_fact=${cat_fact//\"/\\\"}  # Escape double quotes
+        cat_fact=${cat_fact//\\/\\\\}  # Escape backslashes
+        cat_fact=${cat_fact//$'\n'/\\n}  # Escape newlines
+        
+        echo "cat_fact=\"$cat_fact\"" >> $GITHUB_ENV
 
     - name: Update ImageMagick policy
       run: |

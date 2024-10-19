@@ -67,10 +67,7 @@ jobs:
         echo "cat_fact=$cat_fact" >> $GITHUB_ENV
 
 
-    - name: Stop Ollama Service and Clean Up
-      run: |
-        sudo kill $(sudo lsof -t -i:11434) || echo "Ollama service stopped"
-        sudo rm -rf ~/.ollama
+    
 
 
     - name: Run script

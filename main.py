@@ -20,7 +20,10 @@ from google.oauth2.credentials import Credentials
 
 # Load environment variables from .env file if running locally
 load_dotenv(".env")
-
+parser = argparse.ArgumentParser(description="Generate text using LLaMA model.")
+parser.add_argument('--prompt', type=str, required=True, help='The prompt for the LLaMA model to generate text.')
+args = parser.parse_args()
+prompt = args.prompt
 # Constants and configuration
 CLIENT_ID = environ.get("CLIENT_ID")
 CLIENT_SECRET = environ.get("CLIENT_SECRET")
@@ -47,8 +50,8 @@ print(fig_font.renderText("Auto Video Short!!!"))
 
 # Get a quote and save it to a variable
 try:
-    text_quote = get_quote()
-    make_audio(text_quote)
+    text_quote = prompt
+    make_audio(prompt)
 except Exception as e:
     print(f"Error fetching quote or creating audio: {e}")
     exit(1)

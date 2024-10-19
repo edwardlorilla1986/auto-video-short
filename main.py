@@ -1,4 +1,4 @@
-import argparse
+
 import os
 import base64
 import requests
@@ -20,10 +20,7 @@ from google.oauth2.credentials import Credentials
 
 # Load environment variables from .env file if running locally
 load_dotenv(".env")
-parser = argparse.ArgumentParser(description="Generate text using LLaMA model.")
-parser.add_argument('--prompt', type=str, required=True, help='The prompt for the LLaMA model to generate text.')
-args = parser.parse_args()
-prompt = args.prompt
+
 # Constants and configuration
 CLIENT_ID = environ.get("CLIENT_ID")
 CLIENT_SECRET = environ.get("CLIENT_SECRET")
@@ -47,9 +44,10 @@ if not os.path.exists(output_dir):
 # Display a title using Figlet
 fig_font = Figlet(font="slant", justify="left")
 print(fig_font.renderText("Auto Video Short!!!"))
-
+prompt = os.getenv("CAT_FACT", "")
 # Get a quote and save it to a variable
 try:
+    
     text_quote = prompt
     make_audio(prompt)
 except Exception as e:

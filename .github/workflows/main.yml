@@ -38,6 +38,8 @@ jobs:
         df -h
         sudo apt-get update
         curl -fsSL https://ollama.com/install.sh | sh
+        sudo apt-get update
+        sudo apt-get install espeak mbrola mbrola-en1
         sudo apt-get install ttf-mscorefonts-installer
         sudo apt-get install -y imagemagick ghostscript
         python -m pip install --upgrade pip

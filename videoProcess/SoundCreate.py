@@ -43,6 +43,7 @@ def make_audio(quote):
     _inputs = tokenizer(prompt, return_tensors="pt")
     outputs = model.generate(**inputs, max_new_tokens=50)
     generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    print(generated_text)
     inputs = processor(text=insert_random_expressions(generated_text, expressions)
 , voice_preset=voice_preset, return_tensors="pt")
     

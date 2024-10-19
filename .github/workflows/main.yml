@@ -72,14 +72,8 @@ jobs:
       id: generate_cat_fact
       run: |
         cat_fact=$(curl -s -X POST http://localhost:11434/api/generate -d '{"model": "llama2", "prompt": "Give me an interesting fact about cats."}' | jq -r '.response' | tr -d '\n' | tr -d '\r')
-        
-        # Escape special characters
-        cat_fact=${cat_fact//\'/\'\\\'\'}  # Escape single quotes properly
-        cat_fact=${cat_fact//\"/\\\"}      # Escape double quotes
-        cat_fact=${cat_fact//\\/\\\\}      # Escape backslashes
-        cat_fact=${cat_fact//$'\n'/\\n}    # Escape newlines
-        
-        echo "cat_fact=\"$cat_fact\"" >> $GITHUB_ENV
+        sanitized_cat_fact=$(echo "$cat_fact" | sed 's/[^a-zA-Z0-9 .,!?-]//g')  # Remove special characters
+        echo "cat_fact=$sanitized_cat_fact" >> $GITHUB_ENV
 
     - name: Update ImageMagick policy
       run: |
@@ -106,8 +100,8 @@ jobs:
 
     - name: Run script
       run: |
-          export CAT_FACT="${{ env.cat_fact }}"
-          python main.py --max_tokens 100
+        export CAT_FACT="${{ env.cat_fact }}"
+        python main.py --max_tokens 100
 
     - name: Commit output files
       run: |

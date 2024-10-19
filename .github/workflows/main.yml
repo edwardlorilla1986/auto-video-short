@@ -70,12 +70,6 @@ jobs:
         cat_fact=$(ollama generate "Give me an interesting fact about cats.")
         echo "cat_fact=$cat_fact" >> $GITHUB_ENV
 
-    - name: Generate Cat Fact Using Ollama
-      id: generate_cat_fact  # Assign an ID to reference output later
-      run: |
-        cat_fact=$(curl -X POST http://localhost:11434/generate -d '{"prompt": "Give me an interesting fact about cats."}')
-        echo "cat_fact=$cat_fact" >> $GITHUB_ENV
-
     - name: Update ImageMagick policy
       run: |
         if [ -f /etc/ImageMagick-7/policy.xml ]; then

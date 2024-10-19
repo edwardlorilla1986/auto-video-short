@@ -17,7 +17,7 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2.credentials import Credentials
-
+import re
 # Load environment variables from .env file if running locally
 load_dotenv(".env")
 
@@ -35,7 +35,10 @@ PAGE_ID = environ.get("PAGE_ID")
 PAGE_ACCESS_TOKEN = environ.get("PAGE_ACCESS_TOKEN")
 IG_USER_ID = environ.get("IG_USER_ID")
 IG_ACCESS_TOKEN = environ.get("IG_ACCESS_TOKEN")
-
+def sanitize_input(user_input):
+    # Only allow alphanumeric characters and spaces
+    safe_input = re.sub(r'[^a-zA-Z0-9 ]', '', user_input)
+    return safe_input
 # Ensure output directory exists
 output_dir = "output"
 if not os.path.exists(output_dir):
@@ -48,7 +51,7 @@ prompt = os.getenv("CAT_FACT", "")
 # Get a quote and save it to a variable
 try:
     
-    text_quote = prompt
+    text_quote = sanitize_input(prompt)
     make_audio(prompt)
 except Exception as e:
     print(f"Error fetching quote or creating audio: {e}")

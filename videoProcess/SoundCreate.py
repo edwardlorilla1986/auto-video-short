@@ -9,7 +9,7 @@ import random
 # Load environment variables
 load_dotenv(".env")
 AUDIO = environ["AUDIO_NAME"]
-tokenizer = AutoTokenizer.from_pretrained("huggyllama/llama-7b")
+tokenizer = AutoTokenizer.from_pretrained("huggyllama/llama-7b", legacy=False)
 model = AutoModelForCausalLM.from_pretrained("huggyllama/llama-7b")
 prompt = "Generate an interesting fact about cats."
 # Initialize the processor and model

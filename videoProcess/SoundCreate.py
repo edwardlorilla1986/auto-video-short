@@ -1,6 +1,6 @@
 
 import torch
-from transformers import AutoProcessor, BarkModel, AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoProcessor, BarkModel
 import scipy.io.wavfile as wavfile
 from os import environ
 from dotenv import load_dotenv
@@ -9,10 +9,6 @@ import random
 # Load environment variables
 load_dotenv(".env")
 AUDIO = environ["AUDIO_NAME"]
-tokenizer = AutoTokenizer.from_pretrained("huggyllama/llama-7b", legacy=False)
-model = AutoModelForCausalLM.from_pretrained("huggyllama/llama-7b")
-prompt = "Generate an interesting fact about cats."
-# Initialize the processor and model
 processor = AutoProcessor.from_pretrained("suno/bark")
 model = BarkModel.from_pretrained("suno/bark")
 
@@ -40,11 +36,8 @@ def insert_random_expressions(text, expressions, num_insertions=2):
 
 # Modify the text_prompt by inserting random expression
 def make_audio(quote):
-    _inputs = tokenizer(prompt, return_tensors="pt")
-    outputs = model.generate(**inputs, max_new_tokens=50)
-    generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    print(generated_text)
-    inputs = processor(text=insert_random_expressions(generated_text, expressions)
+   
+    inputs = processor(text=insert_random_expressions(quote, expressions)
 , voice_preset=voice_preset, return_tensors="pt")
     
     # Generate the attention mask

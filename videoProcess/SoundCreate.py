@@ -5,6 +5,7 @@ import numpy as np
 from os import environ
 from dotenv import load_dotenv
 import random
+import re
 # Load environment variables
 load_dotenv(".env")
 AUDIO = environ["AUDIO_NAME"]

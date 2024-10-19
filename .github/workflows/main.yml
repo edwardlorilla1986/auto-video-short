@@ -71,7 +71,7 @@ jobs:
     - name: Generate Cat Fact Using Ollama API
       id: generate_cat_fact
       run: |
-        cat_fact=$(curl -s -X POST http://localhost:11434/api/generate -d '{"model": "llama2", "prompt": "Give me an interesting fact about cats."}' | jq -r '.response' | tr -d '\n' | tr -d '\r')
+        cat_fact=$(curl -s -X POST http://localhost:11434/api/generate -d '{"model": "llama2", "prompt": "Give me an interesting fact about cats one sentence only."}' | jq -r '.response' | tr -d '\n' | tr -d '\r')
         echo "cat_fact=$cat_fact" >> $GITHUB_ENV
 
     - name: Update ImageMagick policy

@@ -5,7 +5,6 @@ import numpy as np
 from os import environ
 from dotenv import load_dotenv
 import random
-import nltk 
 # Load environment variables
 load_dotenv(".env")
 AUDIO = environ["AUDIO_NAME"]
@@ -36,25 +35,23 @@ def insert_random_expressions(text, expressions, num_insertions=2):
         words.insert(index, random.choice(expressions))
     return " ".join(words)
 
- # For splitting text into sentences
 
-nltk.download('punkt')
-
-def split_text_into_sentences(text, max_length):
-    sentences = nltk.sent_tokenize(text)
+def split_text_into_sentences_basic(text, max_length):
+    # Split based on period, exclamation mark, or question mark
+    sentences = re.split(r'(?<=[.!?]) +', text)
     chunks = []
     current_chunk = ""
-    
+
     for sentence in sentences:
         if len(current_chunk) + len(sentence) <= max_length:
             current_chunk += " " + sentence
         else:
             chunks.append(current_chunk.strip())
             current_chunk = sentence
-            
+
     if current_chunk:
         chunks.append(current_chunk.strip())
-    
+
     return chunks
 
 def make_audio(quote):

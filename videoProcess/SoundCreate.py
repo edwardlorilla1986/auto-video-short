@@ -56,7 +56,7 @@ def split_text_into_sentences_basic(text, max_length):
 
 def make_audio(quote):
     processed_text = insert_random_expressions(quote, expressions)
-    max_length = 512  # Adjust based on the model's limit
+    max_length = 100
     chunks = split_text_into_sentences(processed_text, max_length)
 
     full_audio = np.array([])

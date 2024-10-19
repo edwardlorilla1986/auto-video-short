@@ -79,10 +79,11 @@ def make_audio(quote):
         print(f"Processing chunk {i + 1}/{len(chunks)}")
 
         # Tokenize the chunk
-        inputs = processor(text=chunk, return_tensors="pt", padding=True, truncation=True)
+        inputs = processor(text=chunk, return_tensors="pt")
 
-        # Ensure attention_mask is explicitly set
-        inputs['attention_mask'] = inputs['input_ids'].ne(processor.tokenizer.pad_token_id).long()
+        # Generate the attention mask
+        attention_mask = inputs['input_ids'].ne(processor.tokenizer.pad_token_id).long()
+        inputs['attention_mask'] = attention_mask
 
         # Move inputs to the same device as the model
         inputs = {key: value.to(device) for key, value in inputs.items()}

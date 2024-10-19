@@ -51,10 +51,13 @@ jobs:
         
     - name: Verify Ollama Installation
       run: ollama --version
+    - name: Kill Process on Default Ollama Port (if any)
+      run: |
+        sudo kill $(sudo lsof -t -i:11434) || echo "No process running on port 11434"
 
     - name: Start Ollama Service
       run: |
-        ollama serve --port 11400 &
+        ollama serve &
         sleep 5  # Wait for the service to start
 
     - name: Generate Cat Fact Using Ollama

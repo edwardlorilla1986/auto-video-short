@@ -5,7 +5,7 @@ import scipy.io.wavfile as wavfile
 from os import environ
 from dotenv import load_dotenv
 import random
-
+import numpy as np
 # Load environment variables
 load_dotenv(".env")
 AUDIO = environ["AUDIO_NAME"]

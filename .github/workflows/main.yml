@@ -60,6 +60,10 @@ jobs:
         ollama serve &
         sleep 5  # Wait for the service to start
 
+    - name: Pull Llama Model
+      run: |
+        ollama pull llama2
+
     - name: Check Ollama Root Endpoint
       run: |
         curl http://localhost:11434/
@@ -67,7 +71,7 @@ jobs:
     - name: Generate Cat Fact Using Ollama API
       id: generate_cat_fact
       run: |
-        cat_fact=$(curl -X POST http://localhost:11434/api/generate -d '{"model": "llama3.2", "prompt": "Give me an interesting fact about cats."}')
+        cat_fact=$(curl -X POST http://localhost:11434/api/generate -d '{"model": "llama2", "prompt": "Give me an interesting fact about cats."}')
         echo "cat_fact=$cat_fact" >> $GITHUB_ENV
 
     - name: Update ImageMagick policy

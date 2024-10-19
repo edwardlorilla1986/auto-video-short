@@ -54,7 +54,7 @@ jobs:
 
     - name: Start Ollama Service
       run: |
-        ollama serve &
+        ollama serve --port 11400 &
         sleep 5  # Wait for the service to start
 
     - name: Generate Cat Fact Using Ollama

@@ -63,8 +63,8 @@ jobs:
     - name: Generate Cat Fact Using Ollama
       id: generate_cat_fact  # Assign an ID to reference output later
       run: |
-        result=$(ollama generate "Give me an interesting fact about cats.")
-        echo "::set-output name=cat_fact::$result"
+        cat_fact=$(curl -X POST http://localhost:11434/generate -d '{"prompt": "Give me an interesting fact about cats."}')
+        echo "cat_fact=$cat_fact" >> $GITHUB_ENV
 
     - name: Update ImageMagick policy
       run: |
@@ -85,7 +85,7 @@ jobs:
         sudo sed -i 's/<policy domain="coder" rights="none" pattern="PDF"/<!-- <policy domain="coder" rights="none" pattern="PDF" -->/' $POLICY_FILE || true
 
     - name: Run script
-      run: python main.py --prompt "${{ steps.generate_cat_fact.outputs.cat_fact }}" --max_tokens 100
+      run: python main.py --prompt "${{ env.cat_fact }}" --max_tokens 100
 
     - name: Commit output files
       run: |

@@ -74,10 +74,10 @@ jobs:
         cat_fact=$(curl -s -X POST http://localhost:11434/api/generate -d '{"model": "llama2", "prompt": "Give me an interesting fact about cats."}' | jq -r '.response' | tr -d '\n' | tr -d '\r')
         
         # Escape special characters
-        cat_fact=${cat_fact//\'/\\\'}  # Escape single quotes
-        cat_fact=${cat_fact//\"/\\\"}  # Escape double quotes
-        cat_fact=${cat_fact//\\/\\\\}  # Escape backslashes
-        cat_fact=${cat_fact//$'\n'/\\n}  # Escape newlines
+        cat_fact=${cat_fact//\'/\'\\\'\'}  # Escape single quotes properly
+        cat_fact=${cat_fact//\"/\\\"}      # Escape double quotes
+        cat_fact=${cat_fact//\\/\\\\}      # Escape backslashes
+        cat_fact=${cat_fact//$'\n'/\\n}    # Escape newlines
         
         echo "cat_fact=\"$cat_fact\"" >> $GITHUB_ENV
 

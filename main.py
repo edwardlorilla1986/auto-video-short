@@ -107,7 +107,7 @@ try:
     video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
 
     # Create a text clip with the quote
-    fact_text = TextClip(shorten_text(text_quote, max_length=30), color='white', fontsize=50).set_position(('center', 'center'))
+    fact_text = TextClip(shorten_text(text_quote, max_length=90), color='white', fontsize=50).set_position(('center', 'center'))
 
     # Get the size of the text clip
     fact_text_width, fact_text_height = fact_text.size

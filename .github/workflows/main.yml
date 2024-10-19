@@ -60,21 +60,46 @@ jobs:
         ollama serve &
         sleep 5  # Wait for the service to start
 
-    - name: Generate Cat Fact Using Ollama
+    - name: Pull Llama Model
+      run: |
+        ollama pull llama2
+
+    - name: Check Ollama Root Endpoint
+      run: |
+        curl http://localhost:11434/
+
+    - name: Generate Cat Fact Using Ollama API
       id: generate_cat_fact
       run: |
-        cat_fact=$(curl -X POST http://localhost:11434/generate -d '{"prompt": "Give me an interesting fact about cats."}')
+        cat_fact=$(curl -s -X POST http://localhost:11434/api/generate -d '{"model": "llama2", "prompt": "Give me an interesting fact about cats."}' | jq -r '.response')
         echo "cat_fact=$cat_fact" >> $GITHUB_ENV
 
+    - name: Update ImageMagick policy
+      run: |
+        if [ -f /etc/ImageMagick-7/policy.xml ]; then
+          POLICY_FILE="/etc/ImageMagick-7/policy.xml"
+        elif [ -f /etc/ImageMagick-6/policy.xml ]; then
+          POLICY_FILE="/etc/ImageMagick-6/policy.xml"
+        else
+          echo "No ImageMagick policy.xml file found."
+          exit 1
+        fi
+        sudo sed -i 's/<policy domain="path" rights="none" pattern="@\*"/<!-- <policy domain="path" rights="none" pattern="@\*" -->/' $POLICY_FILE || true
+        sudo sed -i 's/<policy domain="coder" rights="none" pattern="PS"/<!-- <policy domain="coder" rights="none" pattern="PS" -->/' $POLICY_FILE || true
+        sudo sed -i 's/<policy domain="coder" rights="none" pattern="EPI"/<!-- <policy domain="coder" rights="none" pattern="EPI" -->/' $POLICY_FILE || true
+        sudo sed -i 's/<policy domain="coder" rights="none" pattern="URL"/<!-- <policy domain="coder" rights="none" pattern="URL" -->/' $POLICY_FILE || true
+        sudo sed -i 's/<policy domain="coder" rights="none" pattern="MVG"/<!-- <policy domain="coder" rights="none" pattern="MVG" -->/' $POLICY_FILE || true
+        sudo sed -i 's/<policy domain="coder" rights="none" pattern="MSL"/<!-- <policy domain="coder" rights="none" pattern="MSL" -->/' $POLICY_FILE || true
+        sudo sed -i 's/<policy domain="coder" rights="none" pattern="PDF"/<!-- <policy domain="coder" rights="none" pattern="PDF" -->/' $POLICY_FILE || true
 
-    
-
+    - name: Stop Ollama Service and Clean Up
+      run: |
+        sudo kill $(sudo lsof -t -i:11434) || echo "Ollama service stopped"
+        sudo rm -rf ~/.ollama  # Remove Ollama files and models to free up space
 
     - name: Run script
       run: python main.py --prompt "${{ env.cat_fact }}" --max_tokens 100
 
-    # Cleanup step to stop Ollama and erase files
-    
     - name: Commit output files
       run: |
         git config --global user.name 'github-actions'

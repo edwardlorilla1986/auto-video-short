@@ -64,10 +64,10 @@ jobs:
       run: |
         curl http://localhost:11434/
 
-    - name: Generate Cat Fact Using Ollama (Debug)
+    - name: Generate Cat Fact Using Ollama CLI
       id: generate_cat_fact_v1
       run: |
-        cat_fact=$(curl -X POST http://localhost:11434/v1/generate -d '{"prompt": "Give me an interesting fact about cats."}')
+        cat_fact=$(ollama generate "Give me an interesting fact about cats.")
         echo "cat_fact=$cat_fact" >> $GITHUB_ENV
 
     - name: Generate Cat Fact Using Ollama

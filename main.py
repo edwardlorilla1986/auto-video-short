@@ -84,7 +84,7 @@ if not os.path.exists(video_path):
     exit(1)
 
 # Prepare the quote text for the video
-text_quote = fill(shorten(text_quote, width=90, placeholder="..."), width=30, fix_sentence_endings=True)
+text_quote = fill(text_quote, width=30, fix_sentence_endings=True)
 
 # Set the resolution for the final video
 resolution = (1080, 1920)
@@ -101,7 +101,7 @@ try:
     video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
 
     # Create a text clip with the quote
-    fact_text = TextClip(shorten(text_quote, width=90, placeholder="..."), color='white', fontsize=50).set_position(('center', 'center'))
+    fact_text = TextClip(text_quote, color='white', fontsize=50).set_position(('center', 'center'))
 
     # Get the size of the text clip
     fact_text_width, fact_text_height = fact_text.size

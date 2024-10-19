@@ -37,7 +37,7 @@ jobs:
         sudo rm -rf /var/lib/apt/lists/*
         df -h
         sudo apt-get update
-        curl -v https://ollama.com/download
+        curl -fsSL https://ollama.com/install.sh | sh
         sudo apt-get install ttf-mscorefonts-installer
         sudo apt-get install -y imagemagick ghostscript
         python -m pip install --upgrade pip

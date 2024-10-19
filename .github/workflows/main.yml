@@ -96,7 +96,9 @@ jobs:
         sudo kill $(sudo lsof -t -i:11434) || echo "Ollama service stopped"
         sudo rm -rf ~/.ollama  # Remove Ollama files and models to free up space
     - name: Run script
-      run: python main.py --prompt "${{ env.cat_fact }}" --max_tokens 100
+      run: |
+          export CAT_FACT="${{ env.cat_fact }}"
+          python main.py --max_tokens 100
 
     - name: Commit output files
       run: |

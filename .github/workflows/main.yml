@@ -60,6 +60,16 @@ jobs:
         ollama serve &
         sleep 5  # Wait for the service to start
 
+    - name: Check Ollama Root Endpoint
+      run: |
+        curl http://localhost:11434/
+
+    - name: Generate Cat Fact Using Ollama (Debug)
+      id: generate_cat_fact_v1
+      run: |
+        cat_fact=$(curl -X POST http://localhost:11434/v1/generate -d '{"prompt": "Give me an interesting fact about cats."}')
+        echo "cat_fact=$cat_fact" >> $GITHUB_ENV
+
     - name: Generate Cat Fact Using Ollama
       id: generate_cat_fact  # Assign an ID to reference output later
       run: |

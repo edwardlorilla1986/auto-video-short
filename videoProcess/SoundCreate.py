@@ -1,22 +1,40 @@
+
 import torch
-from scipy.io import wavfile
-from transformers import AutoProcessor, AutoModelForSpeechSeq2Seq
-import numpy as np
+from transformers import AutoProcessor, BarkModel
+import scipy.io.wavfile as wavfile
+from os import environ
+from dotenv import load_dotenv
+import random
 
-# Define device and load models
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-processor = AutoProcessor.from_pretrained("facebook/s2t-small-librispeech-asr")
-model = AutoModelForSpeechSeq2Seq.from_pretrained("facebook/s2t-small-librispeech-asr").to(device)
+# Load environment variables
+load_dotenv(".env")
+AUDIO = environ["AUDIO_NAME"]
+processor = AutoProcessor.from_pretrained("suno/bark")
+model = BarkModel.from_pretrained("suno/bark")
 
-def insert_random_expressions(text, expressions):
-    """
-    Insert random expressions like 'wow', 'haha' into the text.
-    """
+# Optionally move the model to CUDA if available
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model.to(device)
+
+# Define the voice preset
+voice_preset = "v2/en_speaker_6"
+
+# Define the text prompt
+text_prompt = """
+Hi, my name is Prateek, welcome you all. Today we are going to discuss about olivine crystal, so let's start.
+"""
+
+# List of random expressions to insert
+expressions = [ "", ""]
+
+def insert_random_expressions(text, expressions, num_insertions=2):
     words = text.split()
-    for i in range(0, len(words), 5):  # Insert every 5 words for illustration
-        words.insert(i, np.random.choice(expressions))
+    for _ in range(num_insertions):
+        index = random.randint(0, len(words) - 1)
+        words.insert(index, random.choice(expressions))
     return " ".join(words)
 
+# Modify the text_prompt by inserting random expression
 def split_text_into_chunks(text, max_length):
     """
     Split text into chunks that fit within the model's token limit.
@@ -89,5 +107,3 @@ def make_audio(quote):
     wavfile.write(f"output/full_audio.wav", rate=sample_rate, data=full_audio)
 
     print("Full audio generated and saved as 'full_audio.wav'.")
-
-

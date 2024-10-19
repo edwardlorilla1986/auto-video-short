@@ -71,10 +71,12 @@ jobs:
     - name: Generate Cat Fact Using Ollama API
       id: generate_cat_fact
       run: |
-        cat_fact=$(curl -s -X POST http://localhost:11434/api/generate -d '{"model": "llama2", "prompt": "Give me an interesting fact about cats."}' | jq -r '.response')
-        echo "cat_fact<<EOF" >> $GITHUB_ENV
-        echo "$cat_fact" >> $GITHUB_ENV
-        echo "EOF" >> $GITHUB_ENV
+        cat_fact=$(curl -s -X POST http://localhost:11434/api/generate -d '{"model": "llama2", "prompt": "Give me an interesting fact about cats."}' | jq -r '.response' | tr -d '\n' | tr -d '\r')
+
+        # Sanitize the cat_fact using regex to escape or remove problematic characters
+        sanitized_cat_fact=$(echo "$cat_fact" | sed 's/["`\\]/\\&/g')
+
+        echo "cat_fact=\"$sanitized_cat_fact\"" >> $GITHUB_ENV
 
     - name: Update ImageMagick policy
       run: |
@@ -93,10 +95,12 @@ jobs:
         sudo sed -i 's/<policy domain="coder" rights="none" pattern="MVG"/<!-- <policy domain="coder" rights="none" pattern="MVG" -->/' $POLICY_FILE || true
         sudo sed -i 's/<policy domain="coder" rights="none" pattern="MSL"/<!-- <policy domain="coder" rights="none" pattern="MSL" -->/' $POLICY_FILE || true
         sudo sed -i 's/<policy domain="coder" rights="none" pattern="PDF"/<!-- <policy domain="coder" rights="none" pattern="PDF" -->/' $POLICY_FILE || true
+
     - name: Stop Ollama Service and Clean Up
       run: |
         sudo kill $(sudo lsof -t -i:11434) || echo "Ollama service stopped"
         sudo rm -rf ~/.ollama  # Remove Ollama files and models to free up space
+
     - name: Run script
       run: |
           export CAT_FACT="${{ env.cat_fact }}"

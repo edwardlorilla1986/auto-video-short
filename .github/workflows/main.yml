@@ -52,6 +52,11 @@ jobs:
     - name: Verify Ollama Installation
       run: ollama --version
 
+    - name: Start Ollama Service
+      run: |
+        ollama serve &
+        sleep 5  # Wait for the service to start
+
     - name: Generate Cat Fact Using Ollama
       id: generate_cat_fact  # Assign an ID to reference output later
       run: |

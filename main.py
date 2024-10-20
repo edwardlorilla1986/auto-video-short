@@ -120,7 +120,7 @@ base64_video = ""
 final_video_path = ""
 try:
     video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
-
+    text_chunks = text_quote
     # Calculate duration for each chunk
     total_duration = video_clip.duration
     chunk_duration = total_duration / len(text_chunks)

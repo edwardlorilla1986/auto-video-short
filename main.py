@@ -102,8 +102,8 @@ def shorten_text(text, max_length=30):
     if len(text) > max_length:
         return text[:max_length - 3] + '...'  # Truncate and add ellipsis
     return text
-try:
-    def split_text_chunks(text, max_length=90):
+
+def split_text_chunks(text, max_length=90):
     words = text.split()
     chunks = []
     current_chunk = ""
@@ -115,6 +115,8 @@ try:
             current_chunk += (" " + word) if current_chunk else word
     chunks.append(current_chunk)
     return chunks
+try:
+    
 
     # Load video and audio clips
     video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)

@@ -121,27 +121,48 @@ final_video_path = ""
 try:
     # Load video and audio clips
     video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
-    text_chunks = split_text_chunks(text_quote)
+    
+    # Split the quote into larger chunks if necessary
+    text_chunks = split_text_chunks(text_quote, max_length=90)
+    
+    # Calculate the duration each chunk should last
+    total_duration = video_clip.duration
+    chunk_duration = total_duration / len(text_chunks)
+    
+    # Create text clips with semi-transparent backgrounds for each chunk
     text_clips = []
-    
     for idx, chunk in enumerate(text_chunks):
-        fact_text = TextClip(chunk, color='white', fontsize=50).set_position(('center', 'center')).set_duration(video_clip.duration / len(text_chunks))
-        fact_text_width, fact_text_height = fact_text.size
-        semi_transparent_bg = ColorClip(size=(fact_text_width, fact_text_height), color=(0, 0, 0)).set_opacity(0.5).set_position(('center', 'center')).set_duration(video_clip.duration / len(text_chunks))
-        text_clips.append(CompositeVideoClip([semi_transparent_bg, fact_text]))
+        # Create a text clip that shows the entire chunk of text
+        fact_text = (
+            TextClip(chunk, color='white', fontsize=50, align='center', stroke_color='black', stroke_width=2, method='caption')
+            .set_position(('center', 'center'))
+            .set_duration(chunk_duration)
+        )
     
+        # Create a semi-transparent background for each chunk of text
+        fact_text_width, fact_text_height = fact_text.size
+        semi_transparent_bg = (
+            ColorClip(size=(fact_text_width + 40, fact_text_height + 20), color=(0, 0, 0))
+            .set_opacity(0.5)
+            .set_position(('center', 'center'))
+            .set_duration(chunk_duration)
+        )
+    
+        # Combine the text with the semi-transparent background into a composite clip
+        text_clip_with_bg = CompositeVideoClip([semi_transparent_bg, fact_text])
+        text_clips.append(text_clip_with_bg)
+    
+    # Concatenate all text clips to form the final overlay
     final_text_clip = concatenate_videoclips(text_clips)
+    
+    # Create the final composite video with the video clip and text overlay
     final = CompositeVideoClip([video_clip, final_text_clip])
     
-    # Define final video path
+    # Write the final video to a file
     final_video_path = f"{output_dir}/{FINAL_VIDEO}"
-    
-    # Write final video
     final.write_videofile(final_video_path, codec="libx264")
     
-    print(f"Final video successfully created at {final_video_path}")
-    
-    # Convert final video to base64
+    # Convert final video to base64 for use elsewhere
     base64_video = video_to_base64(final_video_path)
 
 except Exception as e:

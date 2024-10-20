@@ -132,6 +132,7 @@ try:
     final = CompositeVideoClip([video_clip, final_text_clip])
     final.write_videofile(f"{output_dir}/{FINAL_VIDEO}", codec="libx264")
     print(f"Final video successfully created at {final_video_path}")
+    base64_video = video_to_base64(final_video_path)
 except Exception as e:
     print(f"Error processing video: {e}")
 
@@ -145,7 +146,7 @@ def video_to_base64(video_path):
         print(f"Error converting video to base64: {e}")
         return None
 
-base64_video = video_to_base64(final_video_path)
+
 
 def send_email(subject, body, to, base64_video):
     try:

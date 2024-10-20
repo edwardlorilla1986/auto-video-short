@@ -103,22 +103,32 @@ def shorten_text(text, max_length=30):
         return text[:max_length - 3] + '...'  # Truncate and add ellipsis
     return text
 try:
-    # Load the video clip, set the audio, loop the video, and resize
+    def split_text_chunks(text, max_length=90):
+    words = text.split()
+    chunks = []
+    current_chunk = ""
+    for word in words:
+        if len(current_chunk) + len(word) + 1 > max_length:
+            chunks.append(current_chunk)
+            current_chunk = word
+        else:
+            current_chunk += (" " + word) if current_chunk else word
+    chunks.append(current_chunk)
+    return chunks
+
+    # Load video and audio clips
     video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
-
-    # Create a text clip with the quote
-    fact_text = TextClip(shorten_text(text_quote, max_length=90), color='white', fontsize=50).set_position(('center', 'center'))
-
-    # Get the size of the text clip
-    fact_text_width, fact_text_height = fact_text.size
-
-    # Create a semi-transparent black background clip with the same size as the text clip
-    semi_transparent_bg = ColorClip(size=(fact_text_width, fact_text_height), color=(0, 0, 0)).set_opacity(0.5).set_position(('center', 'center'))
-    final = CompositeVideoClip([video_clip, semi_transparent_bg.set_duration(video_clip.duration),
-                                fact_text.set_duration(video_clip.duration)])
-    # Export the final video
-    final_video_path = f"{output_dir}/{FINAL_VIDEO}"
-    final.subclip(0, video_clip.duration).write_videofile(final_video_path, fps=30, codec='libx264')
+    text_chunks = split_text_chunks(text_quote)
+    text_clips = []
+    for idx, chunk in enumerate(text_chunks):
+        fact_text = TextClip(chunk, color='white', fontsize=50).set_position(('center', 'center')).set_duration(video_clip.duration / len(text_chunks))
+        fact_text_width, fact_text_height = fact_text.size
+        semi_transparent_bg = ColorClip(size=(fact_text_width, fact_text_height), color=(0, 0, 0)).set_opacity(0.5).set_position(('center', 'center')).set_duration(video_clip.duration / len(text_chunks))
+        text_clips.append(CompositeVideoClip([semi_transparent_bg, fact_text]))
+    
+    final_text_clip = concatenate_videoclips(text_clips)
+    final = CompositeVideoClip([video_clip, final_text_clip])
+    final.write_videofile(f"{output_dir}/{FINAL_VIDEO}", codec="libx264")
     print(f"Final video successfully created at {final_video_path}")
 except Exception as e:
     print(f"Error processing video: {e}")

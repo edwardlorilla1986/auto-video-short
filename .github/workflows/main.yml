@@ -68,10 +68,13 @@ jobs:
       run: |
         curl http://localhost:11434/
 
+  
     - name: Generate Cat Fact Using Ollama API
       id: generate_cat_fact
       run: |
-        cat_fact=$(curl -s -X POST http://localhost:11434/api/generate -d '{"model": "llama3", "prompt": "Give me an random interesting fact about cats and make story of it."}' | jq -r '.response' | tr -d '\n' | tr -d '\r')
+        response=$(curl -s https://catfact.ninja/fact | jq -r '.fact')
+        catfact = $(echo "$cat_fact" | sed 's/[^a-zA-Z0-9 .,!?-]//g')
+        cat_fact=$(curl -s -X POST http://localhost:11434/api/generate -d '{"model": "llama3", "prompt":  "$catfact Give me an random interesting fact about cats and make story of it."}' | jq -r '.response' | tr -d '\n' | tr -d '\r')
         sanitized_cat_fact=$(echo "$cat_fact" | sed 's/[^a-zA-Z0-9 .,!?-]//g')  # Remove special characters
         echo "cat_fact=$sanitized_cat_fact" >> $GITHUB_ENV
 

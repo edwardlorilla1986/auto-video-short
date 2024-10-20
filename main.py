@@ -115,13 +115,15 @@ def split_text_chunks(text, max_length=90):
             current_chunk += (" " + word) if current_chunk else word
     chunks.append(current_chunk)
     return chunks
-try:
-    
 
+base64_video = ""
+final_video_path = ""
+try:
     # Load video and audio clips
     video_clip = VideoFileClip(video_path, audio=False).set_audio(audio_clip).loop(duration=audio_clip.duration).resize(resolution)
     text_chunks = split_text_chunks(text_quote)
     text_clips = []
+    
     for idx, chunk in enumerate(text_chunks):
         fact_text = TextClip(chunk, color='white', fontsize=50).set_position(('center', 'center')).set_duration(video_clip.duration / len(text_chunks))
         fact_text_width, fact_text_height = fact_text.size
@@ -130,9 +132,18 @@ try:
     
     final_text_clip = concatenate_videoclips(text_clips)
     final = CompositeVideoClip([video_clip, final_text_clip])
-    final.write_videofile(f"{output_dir}/{FINAL_VIDEO}", codec="libx264")
+    
+    # Define final video path
+    final_video_path = f"{output_dir}/{FINAL_VIDEO}"
+    
+    # Write final video
+    final.write_videofile(final_video_path, codec="libx264")
+    
     print(f"Final video successfully created at {final_video_path}")
+    
+    # Convert final video to base64
     base64_video = video_to_base64(final_video_path)
+
 except Exception as e:
     print(f"Error processing video: {e}")
 

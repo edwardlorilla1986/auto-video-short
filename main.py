@@ -1,4 +1,3 @@
-
 import os
 import base64
 import requests
@@ -134,7 +133,7 @@ try:
     for idx, chunk in enumerate(text_chunks):
         # Create a text clip that shows the entire chunk of text
         fact_text = (
-            TextClip(chunk, color='white', fontsize=50, align='center', stroke_color='black', stroke_width=2, method='caption')
+            TextClip(chunk, color='white', fontsize=50, align='center', method='caption')
             .set_position(('center', 'center'))
             .set_duration(chunk_duration)
         )
@@ -154,15 +153,9 @@ try:
     
     # Concatenate all text clips to form the final overlay
     final_text_clip = concatenate_videoclips(text_clips)
-    
-    # Create the final composite video with the video clip and text overlay
-    final = CompositeVideoClip([video_clip, final_text_clip])
-    
-    # Write the final video to a file
+    final = CompositeVideoClip([video_clip, final_text_clip.set_position('center')], size=video_clip.size)
     final_video_path = f"{output_dir}/{FINAL_VIDEO}"
     final.write_videofile(final_video_path, codec="libx264")
-    
-    # Convert final video to base64 for use elsewhere
     base64_video = video_to_base64(final_video_path)
 
 except Exception as e:

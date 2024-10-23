@@ -72,7 +72,7 @@ jobs:
     - name: Generate Cat Fact Using Ollama API
       id: generate_cat_fact
       run: |
-        response=$(curl -s https://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en | jq -r '.quoteText')
+        response=$(curl -s https://catfact.ninja/fact | jq -r '.fact')
         sanitized_response=$(echo "$response" | sed 's/[^a-zA-Z0-9 .,!?-]//g')
         cat_fact=$(curl -s -X POST http://localhost:11434/api/generate -d "{\"model\": \"llama3\", \"prompt\":  \"$sanitized_response make a short sentence or summarize it.\"}" | jq -r '.response' | tr -d '\n' | tr -d '\r')
         sanitized_cat_fact=$(echo "$cat_fact" | sed 's/[^a-zA-Z0-9 .,!?-]//g')  # Remove special characters
